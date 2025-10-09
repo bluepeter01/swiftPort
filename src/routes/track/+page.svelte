@@ -125,6 +125,8 @@
 				<p><b>Receiver:</b> {trackingInfo.receiver_name}</p>
 				<p><b>Contents:</b> {trackingInfo.package_contents}</p>
 				<p><b>Weight:</b> {trackingInfo.weight} kg</p>
+				<p><b>Receiver's Email Address:</b> {trackingInfo.receiver_email}</p>
+				<p><b>Receiver's Contact Details:</b> {trackingInfo.receiver_phone}</p>
 			</div>
 
 			<hr class="my-4" />

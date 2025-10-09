@@ -33,7 +33,9 @@ export const GET = async ({ params }) => {
       amount_due: shipment.amount_due,
       payment_status: shipment.payment_status,
       payment_reason: shipment.payment_reason,
-      package_images: shipment.package_images
+      package_images: shipment.package_images,
+      receiver_phone: shipment.receiver_phone,
+      receiver_email: shipment.receiver_email
     });
   } catch (err) {
     console.error(err);
