@@ -19,8 +19,7 @@
 		loading = true;
 
 		if (!trackCode) {
-			errorMsg = 'Tracking code is required';
-			loading = false;
+			showError('Tracking code is required');
 			return;
 		}
 
@@ -32,19 +31,29 @@
 				trackingInfo = data;
 			} else {
 				const errorData = await response.json();
-				errorMsg = errorData.error || 'Tracking code not found';
+				showError(errorData.error || 'Tracking code not found');
 			}
 		} catch (err) {
-			errorMsg = 'Failed to fetch tracking data';
+			showError('Failed to fetch tracking data');
 		} finally {
 			loading = false;
 		}
+	}
+
+	function showError(message: string) {
+		errorMsg = message;
+		loading = false;
+		setTimeout(() => (errorMsg = false), 3000);
 	}
 
 	function payNow() {
 		if (!trackingInfo) return;
 		window.location.href = `/pay/${trackingInfo.tracking_number}`;
 	}
+
+	onMount(() => {
+		console.log('Tracking page mounted successfully ✅');
+	});
 </script>
 
 <!-- 🌤 Background and Header -->
@@ -144,29 +153,27 @@
 				<span class="text-blue-500 italic">{trackingInfo.payment_reason}</span>
 			</p>
 
+			{#if trackingInfo.status === 'Held at Customs' && trackingInfo.payment_status === 'Unpaid'}
+				<div class="my-6 rounded-lg border-l-4 border-yellow-500 bg-yellow-50 p-4 shadow-sm">
+					<h3 class="text-lg font-semibold text-yellow-800">🚨 Shipment Held by Customs</h3>
+					<p class="mt-2 text-sm text-yellow-700">
+						This package is currently being held at <strong>{trackingInfo.current_location}</strong>
+						pending payment of the required customs clearance fee.
+					</p>
 
-{#if trackingInfo.status === 'Held at Customs' && trackingInfo.payment_status === 'Unpaid'}
-	<div class="my-6 rounded-lg border-l-4 border-yellow-500 bg-yellow-50 p-4 shadow-sm">
-		<h3 class="text-lg font-semibold text-yellow-800">🚨 Shipment Held by Customs</h3>
-		<p class="mt-2 text-sm text-yellow-700">
-			This package is currently being held at <strong>{trackingInfo.current_location}</strong> pending payment of the required customs clearance fee.
-		</p>
-
-		<div class="mt-4 flex flex-col sm:flex-row sm:items-center sm:justify-between">
-			<p class="text-sm text-gray-700">
-				<strong>Amount Due:</strong> ${trackingInfo.amount_due}
-			</p>
-			<a
-				href={`/pay/${trackingInfo.tracking_number}`}
-				class="mt-3 inline-block rounded-md bg-yellow-600 px-4 py-2 text-sm font-semibold text-white hover:bg-yellow-700 sm:mt-0"
-			>
-				Pay Customs Fee
-			</a>
-		</div>
-	</div>
-{/if}
-
-			
+					<div class="mt-4 flex flex-col sm:flex-row sm:items-center sm:justify-between">
+						<p class="text-sm text-gray-700">
+							<strong>Amount Due:</strong> ${trackingInfo.amount_due}
+						</p>
+						<a
+							href={`/pay/${trackingInfo.tracking_number}`}
+							class="mt-3 inline-block rounded-md bg-yellow-600 px-4 py-2 text-sm font-semibold text-white hover:bg-yellow-700 sm:mt-0"
+						>
+							Pay Customs Fee
+						</a>
+					</div>
+				</div>
+			{/if}
 
 			{#if trackingInfo.package_images && trackingInfo.package_images.length > 0}
 				<div class="mt-6">
@@ -212,54 +219,45 @@
 			{/if}
 
 			<!-- 📊 Shipment Progress Bar -->
-		<div class="mt-6">
-	<h3 class="mb-2 text-lg font-semibold text-gray-700">Shipment Progress</h3>
+			<div class="mt-6">
+				<h3 class="mb-2 text-lg font-semibold text-gray-700">Shipment Progress</h3>
 
-	<div class="flex items-center justify-between text-sm font-medium text-gray-500">
-		<span>Pending</span>
-		<span>In Transit</span>
-		<span>Delivered</span>
-	</div>
+				<div class="flex items-center justify-between text-sm font-medium text-gray-500">
+					<span>Pending</span>
+					<span>In Transit</span>
+					<span>Delivered</span>
+				</div>
 
-	<div class="relative mt-2 h-3 rounded-full bg-gray-200">
-		<div
-			class="absolute h-3 rounded-full transition-all duration-700 ease-out"
-			style="
-				width: {
-					trackingInfo.status === 'Delivered'
-						? '100%'
-						: trackingInfo.status === 'Held at Customs'
-						? '70%'
-						: trackingInfo.status === 'In-transit'
-						? '60%'
-						: '30%'
-				};
-				background-color: {
-					trackingInfo.status === 'Held at Customs'
-						? '#facc15' /* yellow */
-						: '#3b82f6' /* blue */
-				};
+				<div class="relative mt-2 h-3 rounded-full bg-gray-200">
+					<div
+						class="absolute h-3 rounded-full transition-all duration-700 ease-out"
+						style="
+				width: {trackingInfo.status === 'Delivered'
+							? '100%'
+							: trackingInfo.status === 'Held at Customs'
+								? '70%'
+								: trackingInfo.status === 'In-transit'
+									? '60%'
+									: '30%'};
+				background-color: {trackingInfo.status === 'Held at Customs' ? '#facc15' /* yellow */ : '#3b82f6'};
 			"
-		></div>
-	</div>
+					></div>
+				</div>
 
-	<!-- Status label -->
-	<p class="mt-2 text-center text-sm text-gray-600">
-		Current Status:
-		<span
-			class={
-				trackingInfo.status === 'Held by Customs'
-					? 'text-yellow-600 font-semibold'
-					: trackingInfo.status === 'Delivered'
-					? 'text-green-600 font-semibold'
-					: 'text-blue-600 font-semibold'
-			}
-		>
-			{trackingInfo.status}
-		</span>
-	</p>
-</div>
-
+				<!-- Status label -->
+				<p class="mt-2 text-center text-sm text-gray-600">
+					Current Status:
+					<span
+						class={trackingInfo.status === 'Held by Customs'
+							? 'font-semibold text-yellow-600'
+							: trackingInfo.status === 'Delivered'
+								? 'font-semibold text-green-600'
+								: 'font-semibold text-blue-600'}
+					>
+						{trackingInfo.status}
+					</span>
+				</p>
+			</div>
 
 			<!-- 🕒 Tracking History -->
 			<div class="mt-8">
