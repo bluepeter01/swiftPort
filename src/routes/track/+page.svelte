@@ -9,6 +9,7 @@
 	let errorMsg: string | boolean = false;
 	let loading = false;
 	let showAllMedia = false; // toggles gallery expansion
+	$: sortedHistory = trackingInfo?.history ? [...trackingInfo.history].reverse() : [];
 
 	// Fetch tracking data
 	async function handleTrack(event: Event) {
@@ -266,9 +267,11 @@
 				<h3 class="mb-3 text-lg font-semibold text-gray-700">Tracking History</h3>
 
 				<ul class="relative space-y-4 border-l-4 border-blue-500 pl-4">
-					{#each trackingInfo.history as item, i (item.timestamp)}
-						{@const isCurrent = i === trackingInfo.history.length - 1}
-						{@const isCompleted = i < trackingInfo.history.length - 1}
+					<!-- {#each trackingInfo.history as item, i (item.timestamp)} -->
+					{#each sortedHistory as item, i (item.timestamp)}
+						{@const isCurrent = i === 0}
+						<!-- first item in reversed list -->
+						{@const isCompleted = i > 0}
 
 						<li
 							in:fly={{ x: -30, duration: 300 }}
