@@ -1,0 +1,27 @@
+@import 'tailwindcss';
+@plugin "daisyui";
+
+
+.underdog-regular {
+    font-family: "Underdog", system-ui;
+    font-weight: 400;
+    font-style: normal;
+  }
+  
+  .battambang-light {
+    font-family: "Battambang", system-ui;
+    font-weight: 700;
+    font-style: normal;
+  }
+
+  .quicksand {
+    font-family: "Quicksand", sans-serif;
+    font-optical-sizing: auto;
+    font-weight: 600;
+    font-style: normal;
+  }
+
+  *{
+    @apply scroll-smooth
+    /* @apply overflow-x-hidden */
+  }
