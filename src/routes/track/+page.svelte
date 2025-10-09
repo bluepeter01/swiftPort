@@ -270,33 +270,38 @@
 					<!-- {#each trackingInfo.history as item, i (item.timestamp)} -->
 					{#each sortedHistory as item, i (item.timestamp)}
 						{@const isCurrent = i === 0}
-						<!-- first item in reversed list -->
 						{@const isCompleted = i > 0}
 
 						<li
 							in:fly={{ x: -30, duration: 300 }}
 							class="relative rounded-md p-3 transition-all duration-300
-					{isCurrent ? 'border-l-4 border-blue-600 bg-blue-100 shadow-md' : ''}
-					{isCompleted ? 'opacity-80 hover:bg-blue-50' : 'opacity-60'}"
+			{isCurrent ? 'border-l-4 border-blue-600 bg-blue-100 shadow-md' : ''}
+			{isCompleted ? 'opacity-90 hover:bg-blue-50' : 'opacity-60'}"
 						>
-							<!-- Timeline Dot -->
+							<!-- Timeline Dot / Check -->
 							<div
-								class="absolute top-4 -left-[12px] h-4 w-4 rounded-full border-2
-						{isCurrent ? 'animate-pulse border-blue-600 bg-blue-600' : 'border-blue-400 bg-white'}"
-							></div>
+								class="absolute top-4 -left-[12px] flex h-4 w-4 items-center justify-center rounded-full border-2
+			{isCurrent
+									? 'animate-pulse border-blue-600 bg-blue-600'
+									: isCompleted
+										? 'border-green-500 bg-green-500 text-white'
+										: 'border-blue-400 bg-white'}"
+							>
+								{#if isCompleted}
+									<!-- ✅ Checkmark for completed events -->
+									<span class="text-[10px]">✔</span>
+								{/if}
+							</div>
 
 							<!-- Text Content -->
 							<div class="ml-3">
-								<p
-									class="font-semibold
-							{isCurrent ? 'text-blue-700' : 'text-gray-700'}"
-								>
+								<p class="font-semibold {isCurrent ? 'text-blue-700' : 'text-gray-700'}">
 									{item.event}
 									{#if isCurrent}
 										<span
 											class="ml-2 inline-block rounded-full bg-blue-600 px-2 py-0.5 text-xs text-white"
 										>
-											In Progress
+											Latest Update
 										</span>
 									{/if}
 								</p>
