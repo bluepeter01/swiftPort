@@ -267,8 +267,8 @@
 				<h3 class="mb-3 text-lg font-semibold text-gray-700">Tracking History</h3>
 
 				<ul class="relative space-y-4 border-l-4 border-blue-500 pl-4">
-					<!-- {#each trackingInfo.history as item, i (item.timestamp)} -->
-					{#each sortedHistory as item, i (item.timestamp)}
+					{#each trackingInfo.history as item, i (item.timestamp)}
+						<!-- {#each sortedHistory as item, i (item.timestamp)} -->
 						{@const isCurrent = i === 0}
 						{@const isCompleted = i > 0}
 

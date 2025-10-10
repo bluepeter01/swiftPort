@@ -1,6 +1,4 @@
-<footer
-	class="footer sm:footer-horizontal bg-base-2000 text-base-content mt-12 bg-blue-700 p-10 text-white"
->
+<footer class="bg-base-2000 footer bg-blue-700 p-10 text-white sm:footer-horizontal">
 	<aside>
 		<svg
 			width="50"
