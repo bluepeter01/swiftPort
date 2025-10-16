@@ -1,4 +1,5 @@
 <script>
+	import WhatsAppButton from '$lib/WhatsAppButton.svelte';
 	import '../app.css';
 	import Footer from '../lib/Footer.svelte';
 	import NavBar from '../lib/NavBar.svelte';
@@ -10,5 +11,14 @@
 	<NavBar />
 
 	{@render children()}
-	<Footer />
 </div>
+
+<footer>
+	<Footer />
+</footer>
+
+<!-- Floating WhatsApp chat button -->
+<WhatsAppButton
+	phone="15551234567"
+	message="Hello! I’d like to inquire about SwiftPort shipping."
+/>

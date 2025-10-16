@@ -4,6 +4,7 @@
 	import { goto } from '$app/navigation';
 	import Div1 from '$lib/Div1.svelte';
 	import Div2 from '$lib/Div2.svelte';
+	import Footer from '$lib/Footer.svelte';
 
 	let trackCode = '';
 
@@ -25,17 +26,17 @@
 		track.trackCode = trackCode; // Sync the trackCode with the variable store (if necessary)
 
 		// Optionally, navigate to a new page after form submission (e.g., the tracking page)
-		goto('/track'); // Navigate to the '/track' page or whatever the route is
+		goto(`/track?code=${encodeURIComponent(trackCode)}`);
 	}
 </script>
 
 <main>
 	<div
-		class="hero z-10 min-h-screen"
+		class="z-10 hero min-h-screen"
 		style="background-image: url(/Gemini_Generated_Image_l3496wl3496wl349.png);"
 	>
 		<div class="hero-overlay"></div>
-		<div class="hero-content text-neutral-content text-center">
+		<div class="hero-content text-center text-neutral-content">
 			<div class="max-w-md">
 				<fieldset class="fieldset">
 					<title class="fieldset-legend p-1 text-3xl text-white md:text-4xl">

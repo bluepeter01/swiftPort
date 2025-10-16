@@ -3,7 +3,11 @@
 	import { fade, fly } from 'svelte/transition';
 	import { cubicOut } from 'svelte/easing';
 	import { onMount } from 'svelte';
+	import { page } from '$app/stores';
+	import { goto } from '$app/navigation';
 
+	let showAll = false; // toggle state
+	const visibleCount = 4; // how many items to show by default
 	let trackCode: string = '';
 	let trackingInfo: any = null;
 	let errorMsg: string | boolean = false;
@@ -11,9 +15,16 @@
 	let showAllMedia = false; // toggles gallery expansion
 	$: sortedHistory = trackingInfo?.history ? [...trackingInfo.history].reverse() : [];
 
+	// Show error with timeout
+	function showError(message: string) {
+		errorMsg = message;
+		loading = false;
+		setTimeout(() => (errorMsg = false), 3000);
+	}
+
 	// Fetch tracking data
-	async function handleTrack(event: Event) {
-		event.preventDefault(); // prevent page reload
+	async function handleTrack(event?: Event) {
+		if (event) event.preventDefault(); // prevent form reload if manual submit
 
 		errorMsg = false;
 		trackingInfo = null;
@@ -41,19 +52,29 @@
 		}
 	}
 
-	function showError(message: string) {
-		errorMsg = message;
-		loading = false;
-		setTimeout(() => (errorMsg = false), 3000);
-	}
-
 	function payNow() {
 		if (!trackingInfo) return;
-		window.location.href = `/pay/${trackingInfo.tracking_number}`;
+		goto(`/payment/${trackingInfo.tracking_number}`);
 	}
 
-	onMount(() => {
-		console.log('Tracking page mounted successfully ✅');
+	// Auto-detect tracking code from URL or localStorage
+	onMount(async () => {
+		const urlParams = new URLSearchParams($page.url.search);
+		const codeFromUrl = urlParams.get('code');
+		const codeFromStorage = localStorage.getItem('trackCode');
+
+		if (codeFromUrl) {
+			trackCode = codeFromUrl;
+			localStorage.setItem('trackCode', trackCode);
+		} else if (codeFromStorage) {
+			trackCode = codeFromStorage;
+		}
+
+		if (trackCode) {
+			await handleTrack(); // Auto-fetch data on mount
+		} else {
+			console.log('No tracking code provided yet.');
+		}
 	});
 </script>
 
@@ -267,28 +288,26 @@
 				<h3 class="mb-3 text-lg font-semibold text-gray-700">Tracking History</h3>
 
 				<ul class="relative space-y-4 border-l-4 border-blue-500 pl-4">
-					{#each trackingInfo.history as item, i (item.timestamp)}
-						<!-- {#each sortedHistory as item, i (item.timestamp)} -->
+					{#each trackingInfo.history.slice(0, showAll ? trackingInfo.history.length : visibleCount) as item, i (item.timestamp)}
 						{@const isCurrent = i === 0}
 						{@const isCompleted = i > 0}
 
 						<li
 							in:fly={{ x: -30, duration: 300 }}
 							class="relative rounded-md p-3 transition-all duration-300
-			{isCurrent ? 'border-l-4 border-blue-600 bg-blue-100 shadow-md' : ''}
-			{isCompleted ? 'opacity-90 hover:bg-blue-50' : 'opacity-60'}"
+					{isCurrent ? 'border-l-4 border-blue-600 bg-blue-100 shadow-md' : ''}
+					{isCompleted ? 'opacity-90 hover:bg-blue-50' : 'opacity-60'}"
 						>
 							<!-- Timeline Dot / Check -->
 							<div
 								class="absolute top-4 -left-[12px] flex h-4 w-4 items-center justify-center rounded-full border-2
-			{isCurrent
+						{isCurrent
 									? 'animate-pulse border-blue-600 bg-blue-600'
 									: isCompleted
 										? 'border-green-500 bg-green-500 text-white'
 										: 'border-blue-400 bg-white'}"
 							>
 								{#if isCompleted}
-									<!-- ✅ Checkmark for completed events -->
 									<span class="text-[10px]">✔</span>
 								{/if}
 							</div>
@@ -306,13 +325,55 @@
 									{/if}
 								</p>
 
-								<p class="text-sm text-gray-500">
-									{new Date(item.timestamp).toLocaleString()}
-								</p>
+								<p class="text-sm text-gray-500">{new Date(item.timestamp).toLocaleString()}</p>
 							</div>
 						</li>
 					{/each}
 				</ul>
+
+				<!-- Toggle Button -->
+				{#if trackingInfo.history.length > visibleCount}
+					<div class="mt-4 flex justify-center">
+						<button
+							onclick={() => (showAll = !showAll)}
+							class="flex items-center gap-2 rounded-full border border-blue-400 bg-white px-4 py-2 font-medium text-blue-600 shadow-sm transition hover:bg-blue-600 hover:text-white"
+						>
+							{#if showAll}
+								<span>See Less</span>
+								<svg
+									xmlns="http://www.w3.org/2000/svg"
+									class="h-4 w-4"
+									fill="none"
+									viewBox="0 0 24 24"
+									stroke="currentColor"
+								>
+									<path
+										stroke-linecap="round"
+										stroke-linejoin="round"
+										stroke-width="2"
+										d="M5 15l7-7 7 7"
+									/>
+								</svg>
+							{:else}
+								<span>See More</span>
+								<svg
+									xmlns="http://www.w3.org/2000/svg"
+									class="h-4 w-4"
+									fill="none"
+									viewBox="0 0 24 24"
+									stroke="currentColor"
+								>
+									<path
+										stroke-linecap="round"
+										stroke-linejoin="round"
+										stroke-width="2"
+										d="M19 9l-7 7-7-7"
+									/>
+								</svg>
+							{/if}
+						</button>
+					</div>
+				{/if}
 			</div>
 		</div>
 	{/if}

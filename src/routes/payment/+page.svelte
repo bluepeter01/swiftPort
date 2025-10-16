@@ -1,7 +1,5 @@
 <script lang="ts">
 	import { writable } from 'svelte/store';
-	import { goto } from '$app/navigation';
-	import { page } from '$app/stores';
 
 	const coins = [
 		{ name: 'Bitcoin', symbol: 'BTC', wallet: 'bc1qd77p4k7yeegjvk5cd2mwt7xdzegqpwj7asgpmx' },
@@ -14,10 +12,10 @@
 	let selectedCoin = writable(coins[0]);
 	let copied = writable(false);
 	let waiting = writable(false);
-	let showAmountPrompt = writable(false);
-	let depositAmount = writable(0);
 	let confirmed = writable(false);
 	let phoneNumber = writable('');
+	let showModal = writable(false);
+	let modalMessage = writable('');
 
 	function selectCoin(coin) {
 		selectedCoin.set(coin);
@@ -36,34 +34,20 @@
 		}
 	}
 
-	function openDepositPrompt() {
-		showAmountPrompt.set(true);
-		depositAmount.set(0);
-	}
-
-	async function confirmDeposit(coin) {
-		const user = $page.data.user;
-		if (!user) return;
-
+	async function confirmDeposit() {
 		waiting.set(true);
-		showAmountPrompt.set(false);
 
 		try {
-			await fetch('/api/deposit', {
+			await fetch('/api/crypto-confirm', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({
-					userId: user.id,
-					method: $selectedMethod,
-					coin: coin?.symbol,
-					amount: $depositAmount
-				})
+				body: JSON.stringify({ coin: $selectedCoin.symbol })
 			});
-
-			setTimeout(() => {
-				waiting.set(false);
-				confirmed.set(true);
-			}, 1500);
+			showModal.set(true);
+			modalMessage.set(
+				`Please send proof of payment to our WhatsApp customer service for confirmation.`
+			);
+			waiting.set(false);
 		} catch (err) {
 			console.error(err);
 			waiting.set(false);
@@ -71,7 +55,7 @@
 	}
 
 	async function submitWireRequest() {
-		if (!$phoneNumber) return alert('Please enter your phone number');
+		if (!$phoneNumber) return alert('Please enter your WhatsApp number');
 		waiting.set(true);
 
 		try {
@@ -81,10 +65,11 @@
 				body: JSON.stringify({ phone: $phoneNumber })
 			});
 
-			setTimeout(() => {
-				waiting.set(false);
-				confirmed.set(true);
-			}, 1500);
+			showModal.set(true);
+			modalMessage.set(
+				`You will receive our bank account details via WhatsApp shortly.`
+			);
+			waiting.set(false);
 		} catch (err) {
 			console.error(err);
 			waiting.set(false);
@@ -100,12 +85,14 @@
 		<button
 			class="btn"
 			class:btn-primary={$selectedMethod === 'crypto'}
-			on:click={() => selectedMethod.set('crypto')}>Crypto</button
+			on:click={() => selectedMethod.set('crypto')}
+			>Crypto</button
 		>
 		<button
 			class="btn"
 			class:btn-primary={$selectedMethod === 'wire'}
-			on:click={() => selectedMethod.set('wire')}>Wire Transfer</button
+			on:click={() => selectedMethod.set('wire')}
+			>Wire Transfer</button
 		>
 	</div>
 
@@ -131,9 +118,7 @@
 				<div class="rounded-xl bg-white p-6 text-center shadow-lg">
 					<h2 class="mb-4 text-xl font-bold">{$selectedCoin.name} Wallet</h2>
 
-					<div
-						class="mb-4 flex items-center justify-between rounded-lg border bg-white p-4 font-mono"
-					>
+					<div class="mb-4 flex items-center justify-between rounded-lg border bg-white p-4 font-mono">
 						<span class="truncate">{$selectedCoin.wallet}</span>
 						<button class="btn btn-sm btn-primary" on:click={() => copyAddress($selectedCoin)}>
 							{#if $copied}Copied!{/if}
@@ -141,8 +126,8 @@
 						</button>
 					</div>
 
-					<button class="btn w-full bg-yellow-300" disabled={$waiting} on:click={openDepositPrompt}>
-						{#if $waiting}Waiting for confirmation...{/if}
+					<button class="btn w-full bg-yellow-300" disabled={$waiting} on:click={confirmDeposit}>
+						{#if $waiting}Processing...{/if}
 						{#if !$waiting}I HAVE DEPOSITED{/if}
 					</button>
 
@@ -159,7 +144,7 @@
 		<div class="rounded-xl bg-gray-100 p-6 text-center shadow-lg">
 			<h2 class="mb-4 text-xl font-bold">Wire Transfer Request</h2>
 			<p class="mb-3 text-gray-600">
-				Enter your WhatsApp phone number and our team will text you the bank account details.
+				Enter your WhatsApp phone number to receive our bank details.
 			</p>
 
 			<input
@@ -176,37 +161,21 @@
 		</div>
 	{/if}
 
-	<!-- Deposit Amount Modal -->
-	{#if $showAmountPrompt}
-		<div class="bg-opacity-30 fixed inset-0 z-50 flex items-center justify-center bg-black">
-			<div class="w-80 rounded-xl bg-white p-6 shadow-lg">
-				<h2 class="mb-4 text-lg font-bold">Enter Deposit Amount</h2>
-				<input
-					type="number"
-					bind:value={$depositAmount}
-					class="input-bordered input mb-4 w-full"
-					min="0"
-					placeholder="Amount deposited"
-				/>
-				<div class="flex justify-end gap-2">
-					<button class="btn btn-outline" on:click={() => showAmountPrompt.set(false)}
-						>Cancel</button
-					>
-					<button class="btn btn-primary" on:click={() => confirmDeposit($selectedCoin)}
-						>Confirm</button
-					>
-				</div>
+	<!-- MODAL -->
+	{#if $showModal}
+		<div class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+			<div class="w-80 rounded-xl bg-white p-6 text-center shadow-lg">
+				<h2 class="mb-4 text-lg font-bold">Payment Instructions</h2>
+				<p class="mb-4 text-gray-700">{$modalMessage}</p>
+				<a
+					href="https://wa.me/15551234567"
+					target="_blank"
+					class="btn btn-success w-full mb-2"
+					>Open WhatsApp</a
+				>
+				<button class="btn w-full" on:click={() => showModal.set(false)}>Close</button>
 			</div>
 		</div>
 	{/if}
-
-	<!-- Confirmation Message -->
-	{#if $confirmed}
-		<div class="mt-8 rounded-lg bg-green-100 p-4 text-center text-green-800 shadow">
-			<p class="text-lg font-semibold">Thank you! 🎉</p>
-			<p>
-				You will be contacted shortly by our customer service via WhatsApp to confirm your order.
-			</p>
-		</div>
-	{/if}
 </div>
+
