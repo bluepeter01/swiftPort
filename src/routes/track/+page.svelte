@@ -190,7 +190,7 @@
 							<strong>Amount Due:</strong> ${trackingInfo.amount_due}
 						</p>
 						<a
-							href={`/pay/${trackingInfo.tracking_number}`}
+							href={`/payment/${trackingInfo.tracking_number}`}
 							class="mt-3 inline-block rounded-md bg-yellow-600 px-4 py-2 text-sm font-semibold text-white hover:bg-yellow-700 sm:mt-0"
 						>
 							Pay Customs Fee
@@ -199,18 +199,18 @@
 				</div>
 			{/if}
 
-			{#if trackingInfo.package_images && trackingInfo.package_images.length > 0}
+			<!-- {#if trackingInfo.package_images && trackingInfo.package_images.length > 0}
 				<div class="mt-6">
 					<h3 class="mb-3 text-lg font-semibold text-gray-700">Package Media</h3>
 
-					<!-- 💡 Display limited number of items if not expanded -->
+					💡 Display limited number of items if not expanded
 					<div
 						class="grid grid-cols-2 gap-4 md:grid-cols-3"
 						transition:fly={{ y: 10, duration: 300 }}
 					>
 						{#each showAllMedia ? trackingInfo.package_images : trackingInfo.package_images.slice(0, 6) as file}
 							{#if file.match(/\.(jpg|jpeg|png|webp)$/i)}
-								<!-- svelte-ignore a11y_img_redundant_alt -->
+								svelte-ignore a11y_img_redundant_alt
 								<img
 									src={`http://127.0.0.1:8090/api/files/shipments/${trackingInfo.id}/${file}`}
 									alt="Package image"
@@ -218,7 +218,7 @@
 									loading="lazy"
 								/>
 							{:else if file.match(/\.(mp4|mov|webm)$/i)}
-								<!-- svelte-ignore a11y_media_has_caption -->
+								svelte-ignore a11y_media_has_caption
 								<video
 									src={`http://127.0.0.1:8090/api/files/shipments/${trackingInfo.id}/${file}`}
 									controls
@@ -228,7 +228,7 @@
 						{/each}
 					</div>
 
-					<!-- 👇 Toggle button -->
+					👇 Toggle button
 					{#if trackingInfo.package_images.length > 6}
 						<div class="mt-4 text-center">
 							<button
@@ -240,7 +240,7 @@
 						</div>
 					{/if}
 				</div>
-			{/if}
+			{/if} -->
 
 			<!-- 📊 Shipment Progress Bar -->
 			<div class="mt-6">
@@ -288,20 +288,22 @@
 				<h3 class="mb-3 text-lg font-semibold text-gray-700">Tracking History</h3>
 
 				<ul class="relative space-y-4 border-l-4 border-blue-500 pl-4">
-					{#each trackingInfo.history.slice(0, showAll ? trackingInfo.history.length : visibleCount) as item, i (item.timestamp)}
+					{#each [...trackingInfo.history]
+						.reverse()
+						.slice(0, showAll ? trackingInfo.history.length : visibleCount) as item, i (item.timestamp)}
 						{@const isCurrent = i === 0}
 						{@const isCompleted = i > 0}
 
 						<li
 							in:fly={{ x: -30, duration: 300 }}
 							class="relative rounded-md p-3 transition-all duration-300
-					{isCurrent ? 'border-l-4 border-blue-600 bg-blue-100 shadow-md' : ''}
-					{isCompleted ? 'opacity-90 hover:bg-blue-50' : 'opacity-60'}"
+        {isCurrent ? 'border-l-4 border-blue-600 bg-blue-100 shadow-md' : ''}
+        {isCompleted ? 'opacity-90 hover:bg-blue-50' : 'opacity-60'}"
 						>
 							<!-- Timeline Dot / Check -->
 							<div
 								class="absolute top-4 -left-[12px] flex h-4 w-4 items-center justify-center rounded-full border-2
-						{isCurrent
+          {isCurrent
 									? 'animate-pulse border-blue-600 bg-blue-600'
 									: isCompleted
 										? 'border-green-500 bg-green-500 text-white'
@@ -326,6 +328,10 @@
 								</p>
 
 								<p class="text-sm text-gray-500">{new Date(item.timestamp).toLocaleString()}</p>
+
+								{#if item.location}
+									<p class="mt-1 text-xs text-gray-400">📍 {item.location}</p>
+								{/if}
 							</div>
 						</li>
 					{/each}

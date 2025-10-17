@@ -576,7 +576,7 @@
 				</div>
 
 				<!-- Files -->
-				<div class="mt-6">
+				<!-- <div class="mt-6">
 					<h3 class="mb-2 text-sm font-semibold text-slate-700">Package Images / Videos</h3>
 					<input
 						class="file-input-bordered file-input w-full"
@@ -630,7 +630,7 @@
 							{/each}
 						</div>
 					{/if}
-				</div>
+				</div> -->
 
 				<!-- actions -->
 				<div class="mt-6 flex items-center justify-end gap-2">
