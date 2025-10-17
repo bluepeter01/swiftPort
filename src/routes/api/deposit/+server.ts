@@ -1,7 +1,12 @@
 
 import type { RequestHandler } from '@sveltejs/kit';
 import PocketBase from 'pocketbase';
-import { PRIVATE_BREVO_LOGIN, PRIVATE_BREVO_SMTP_KEY, PRIVATE_ADMIN_EMAIL } from '$env/static/private';
+import { env } from '$env/dynamic/private';
+
+const PRIVATE_BREVO_LOGIN = env.PRIVATE_BREVO_LOGIN;
+const PRIVATE_BREVO_SMTP_KEY = env.PRIVATE_BREVO_SMTP_KEY;
+const PRIVATE_ADMIN_EMAIL = env.PRIVATE_ADMIN_EMAIL;
+
 
 export const POST: RequestHandler = async ({ request }) => {
   try {
