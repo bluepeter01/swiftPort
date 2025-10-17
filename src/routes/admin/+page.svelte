@@ -316,7 +316,7 @@
 			{:else}
 				<div class="overflow-x-auto rounded-2xl border border-gray-100 bg-white shadow-xl">
 					<table class="table table-zebra w-full">
-						<thead class="sticky top-0 bg-red-600 text-white">
+						<thead class="sticky top-0 bg-blue-600 text-white">
 							<tr>
 								<th>Tracking</th>
 								<th>Sender</th>
