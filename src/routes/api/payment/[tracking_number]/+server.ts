@@ -1,7 +1,7 @@
 import PocketBase from 'pocketbase';
 import { json, error } from '@sveltejs/kit';
 
-const pb = new PocketBase('https://jpi.sophnexacademy.com.ng/_/');
+const pb = new PocketBase('https://jpi.sophnexacademy.com.ng');
 
 export async function GET({ params }) {
   const { tracking_number } = params;

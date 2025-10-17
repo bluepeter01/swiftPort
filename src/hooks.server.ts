@@ -3,7 +3,7 @@ import PocketBase from 'pocketbase';
 
 /** @type {import('@sveltejs/kit').Handle} */
 export async function handle({ event, resolve }) {
-	event.locals.pb = new PocketBase('https://jpi.sophnexacademy.com.ng/_/');
+	event.locals.pb = new PocketBase('https://jpi.sophnexacademy.com.ng');
 
 	// load the store data from the request cookie string
 	event.locals.pb.authStore.loadFromCookie(event.request.headers.get('cookie') || '');
