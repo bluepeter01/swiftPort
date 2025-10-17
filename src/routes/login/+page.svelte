@@ -3,14 +3,19 @@
 	import { goto } from '$app/navigation';
 	import { onMount } from 'svelte';
 
-	const pb = new PocketBase('https://jpi.sophnexacademy.com.ng'); // your PocketBase URL
+	const pb = new PocketBase('https://jpi.sophnexacademy.com.ng');
+	pb.autoCancellation(false); // prevent unwanted auto-refreshes
 
 	let email = '';
 	let password = '';
 	let errorMsg = '';
+	let loading = false;
 
-	// Optional: if user is already logged in, redirect them
 	onMount(() => {
+		if (typeof document !== 'undefined') {
+			pb.authStore.loadFromCookie(document.cookie);
+		}
+
 		if (pb.authStore.isValid) {
 			goto('/admin');
 		}
@@ -19,26 +24,24 @@
 	async function login(event: Event) {
 		event.preventDefault();
 		errorMsg = '';
+		loading = true;
 
 		try {
-			// Authenticate using PocketBase
 			const authData = await pb.collection('admin_users').authWithPassword(email, password);
 
-			// Save auth session to cookie (for persistence)
-			document.cookie = pb.authStore.exportToCookie({
-				httpOnly: false,
-				sameSite: 'Lax',
-			});
+			// Persist session to browser cookie
+			document.cookie = pb.authStore.exportToCookie({ httpOnly: false });
 
-			goto('/admin'); // redirect to admin dashboard
+			goto('/admin');
 		} catch (err) {
 			console.error('Login error:', err);
 			errorMsg = '❌ Invalid email or password.';
+		} finally {
+			loading = false;
 		}
 	}
 </script>
 
-<!-- 💄 Page UI -->
 <div class="flex min-h-screen items-center justify-center bg-gradient-to-br from-yellow-100 to-red-100">
 	<form
 		class="w-full max-w-sm rounded-2xl bg-white p-8 shadow-lg transition-transform hover:scale-[1.01]"
@@ -58,6 +61,7 @@
 				required
 				class="input input-bordered w-full focus:ring-2 focus:ring-red-500"
 				placeholder="Enter admin email"
+				disabled={loading}
 			/>
 		</div>
 
@@ -69,14 +73,21 @@
 				required
 				class="input input-bordered w-full focus:ring-2 focus:ring-red-500"
 				placeholder="Enter password"
+				disabled={loading}
 			/>
 		</div>
 
 		<button
 			type="submit"
-			class="btn btn-error w-full text-white transition-all hover:scale-[1.02]"
+			class="btn btn-error w-full text-white transition-all hover:scale-[1.02] flex items-center justify-center"
+			disabled={loading}
 		>
-			Login
+			{#if loading}
+				<span class="loading loading-spinner loading-sm mr-2"></span>
+				Logging in...
+			{:else}
+				Login
+			{/if}
 		</button>
 	</form>
 </div>

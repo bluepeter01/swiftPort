@@ -25,3 +25,7 @@
     @apply scroll-smooth
     /* @apply overflow-x-hidden */
   }
+
+  .card {
+  @apply rounded-xl shadow-md;
+}

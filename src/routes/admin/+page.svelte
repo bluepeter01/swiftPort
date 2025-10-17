@@ -360,8 +360,4 @@
 	</div>
 </div>
 
-<style>
-	.alert {
-		@apply rounded-xl shadow-lg;
-	}
-</style>
+
