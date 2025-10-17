@@ -1,40 +1,46 @@
-// import PocketBase from 'pocketbase';
-// import { redirect } from '@sveltejs/kit';
+import PocketBase from 'pocketbase';
+import { redirect } from '@sveltejs/kit';
+import type { LayoutServerLoad } from './$types';
 
-// export async function load({ cookies }) {
-// 	const pb = new PocketBase('https://jpi.sophnexacademy.com.ng');
-// 	const cookie = cookies.get('pb_auth');
+export const load: LayoutServerLoad = async ({ cookies, url }) => {
+	const pb = new PocketBase('https://jpi.sophnexacademy.com.ng');
+	const token = cookies.get('pb_auth');
+	const pathname = url.pathname;
+	const isLoginPage = pathname === '/login';
+	const isAdminPage = pathname.startsWith('/admin');
 
-// 	// 🚫 No cookie at all → redirect
-// 	if (!cookie) throw redirect(303, '/login');
+	// ✅ Step 1: If logged in cookie exists, load it (no refresh)
+	if (token) {
+		try {
+			pb.authStore.loadFromCookie(token, false);
+			pb.autoCancellation(false);
+			pb.beforeSend = () => {
+				throw new Error('SSR network disabled');
+			};
+		} catch (err) {
+			console.error('Auth load failed:', err);
+			cookies.delete('pb_auth', { path: '/' });
+			throw redirect(303, '/login');
+		}
+	}
 
-// 	try {
-// 		// ✅ Load cookie without triggering any verification or refresh
-// 		pb.authStore.loadFromCookie(cookie, false);
-// 		pb.autoCancellation(false);
+	const model = pb.authStore.model;
+	const isAdmin = pb.authStore.isValid && model?.collectionName === 'admin_users';
 
-// 		// ✅ Block network calls during SSR (no /users/auth-refresh ever)
-// 		pb.beforeSend = function () {
-// 			throw new Error('Network disabled in admin SSR auth check');
-// 		};
+	// 🚫 Step 2: Not logged in and trying to view an admin page → go to login
+	if (!token || !isAdmin) {
+		if (isAdminPage && !isLoginPage) {
+			throw redirect(302, '/login');
+		}
+	}
 
-// 		const model = pb.authStore.model;
-// 		const hasValidToken = Boolean(pb.authStore.token);
-// 		const fromAdminCollection = model?.collectionName === 'admin_users';
+	// 🚀 Step 3: Already logged in as admin and visiting login page → go to admin dashboard
+	if (isAdmin && isLoginPage) {
+		throw redirect(303, '/admin');
+	}
 
-// 		// 🚫 Invalid or wrong collection
-// 		if (!hasValidToken || !fromAdminCollection) {
-// 			throw redirect(303, '/login');
-// 		}
-
-// 		// ✅ Return current admin info
-// 		return { admin: model };
-// 	} catch (err) {
-// 		// Only log real unexpected errors (not redirects)
-// 		if (!(err instanceof Response)) {
-// 			console.error('Admin auth check failed:', err?.message || err);
-// 		}
-// 		throw redirect(303, '/login');
-// 	}
-// }
-
+	// ✅ Step 4: Return admin info to layouts/pages
+	return {
+		admin: isAdmin ? model : null
+	};
+};

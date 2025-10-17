@@ -3,29 +3,43 @@ import PocketBase from 'pocketbase';
 
 /** @type {import('@sveltejs/kit').Handle} */
 export async function handle({ event, resolve }) {
-	event.locals.pb = new PocketBase('https://jpi.sophnexacademy.com.ng');
+	const pb = new PocketBase('https://jpi.sophnexacademy.com.ng');
+	event.locals.pb = pb;
 
-	// load the store data from the request cookie string
-	event.locals.pb.authStore.loadFromCookie(event.request.headers.get('cookie') || '');
+	// ✅ Load cookie but disable auto-refresh
+	const cookie = event.request.headers.get('cookie') || '';
+	pb.authStore.loadFromCookie(cookie, false);
+	pb.autoCancellation(false);
 
 	try {
-		// verify and refresh the user
-		if (event.locals.pb.authStore.isValid) {
-			const authData = await event.locals.pb.collection('users').authRefresh();
-			event.locals.user = authData.record; // ✅ assign the user to locals
+		// ✅ Check if cookie is still valid
+		if (pb.authStore.isValid) {
+			const model = pb.authStore.model;
+			event.locals.user = model;
+
+			// Optional: Ensure it’s an admin
+			if (model?.collectionName !== 'admin_users') {
+				pb.authStore.clear();
+				event.locals.user = null;
+			}
 		} else {
 			event.locals.user = null;
 		}
-	} catch (_) {
-		// clear the auth store on failed refresh
-		event.locals.pb.authStore.clear();
-		event.locals.user = null; // ❗ set user to null on error
+	} catch (err) {
+		console.error('Auth validation failed:', err);
+		pb.authStore.clear();
+		event.locals.user = null;
 	}
+
+	// 🚫 Disable any unwanted SSR refresh requests
+	pb.beforeSend = () => {
+		throw new Error('SSR network disabled');
+	};
 
 	const response = await resolve(event);
 
-	// send updated cookie back
-	response.headers.append('set-cookie', event.locals.pb.authStore.exportToCookie());
+	// ✅ Send back the same auth cookie (no refresh)
+	response.headers.append('set-cookie', pb.authStore.exportToCookie());
 
 	return response;
 }
