@@ -4,7 +4,7 @@
 	import { fade } from 'svelte/transition';
 
 	// <-- CHANGE THIS if you test from phone: use your PC LAN IP (e.g. http://192.168.43.101:8090)
-	const pb = new PocketBase('http://127.0.0.1:8090');
+	const pb = new PocketBase('https://jpi.sophnexacademy.com.ng/_/');
 
 	let shipments: any[] = [];
 	let loading = true;
