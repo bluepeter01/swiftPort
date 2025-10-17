@@ -195,10 +195,10 @@
 
 
 
-<div class="min-h-screen bg-gradient-to-br from-yellow-50 to-red-50 p-6">
+<div class="min-h-screen bg-gradient-to-br from-yellow-50 to-red-50 p-6 mt-18">
 	<div class="mx-auto max-w-7xl space-y-6">
 		<header class="flex items-center justify-between">
-			<h1 class="text-3xl font-extrabold text-red-700">📦 SwiftPort Logistics Dashboard</h1>
+			<h1 class="text-3xl font-extrabold text-blue-700">📦 SwiftPort Logistics Dashboard</h1>
 			<button class="btn btn-primary rounded-xl px-5" on:click={openNew}>➕ Add Shipment</button>
 		</header>
 
