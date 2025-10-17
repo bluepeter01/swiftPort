@@ -347,7 +347,7 @@
 									<td>
 										<div class="flex gap-1">
 											<button class="btn btn-outline btn-xs" on:click={() => editShipment(s)}>Edit</button>
-											<button class="btn btn-error btn-xs text-white" on:click={() => deleteShipment(s.id)}>Del</button>
+											<button class="btn btn-error btn-xs text-white" on:click={() => deleteShipment(s.id)}>Delete</button>
 										</div>
 									</td>
 								</tr>
