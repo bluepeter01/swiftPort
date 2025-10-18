@@ -63,7 +63,8 @@
 	</form>
 
 	<div class="mt-12 text-center text-gray-700">
-		<p>📍 Headquarters: 827 Broadway, New York, NY 100003, United States</p>
+		<p>📍 Headquarters: 150 Buchanan Street, Glasgow G1 2JX, United Kingdom</p>
+
 		<p>📞 Phone: +1 (289) 670-2036</p>
 		<p>💬 WhatsApp: <a href="https://wa.me/15552346789" class="text-blue-600">Chat Now</a></p>
 		<p>
