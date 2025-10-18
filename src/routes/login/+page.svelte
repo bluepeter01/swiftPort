@@ -22,24 +22,30 @@
 	});
 
 	async function login(event: Event) {
-		event.preventDefault();
-		errorMsg = '';
-		loading = true;
+  event.preventDefault();
+  errorMsg = '';
+  loading = true;
 
-		try {
-			const authData = await pb.collection('admin_users').authWithPassword(email, password);
+  try {
+    const res = await fetch('/api/admin-login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password })
+    });
 
-			// Persist session to browser cookie
-			document.cookie = pb.authStore.exportToCookie({ httpOnly: false });
+    const data = await res.json();
 
-			goto('/admin');
-		} catch (err) {
-			console.error('Login error:', err);
-			errorMsg = '❌ Invalid email or password.';
-		} finally {
-			loading = false;
-		}
-	}
+    if (!res.ok) throw new Error(data.error || 'Login failed');
+
+    goto('/admin');
+  } catch (err) {
+    console.error('Login error:', err);
+    errorMsg = '❌ Invalid email or password.';
+  } finally {
+    loading = false;
+  }
+}
+
 </script>
 
 <div class="flex min-h-screen items-center justify-center bg-gradient-to-br from-yellow-100 to-red-100">
