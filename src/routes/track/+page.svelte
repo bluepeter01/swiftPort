@@ -135,7 +135,8 @@
 
 			<div class="grid grid-cols-1 gap-3 md:grid-cols-2">
 				<p><b>Tracking Number:</b> {trackingInfo.tracking_number}</p>
-				<p><b>Status:</b> <span class="font-semibold text-blue-700">{trackingInfo.status}</span></p>
+				<p><b>Shipment Status:</b> <span class="font-semibold text-blue-700">{trackingInfo.status}</span></p>
+				<p><b>Payment Status:</b> <span class="font-semibold text-blue-700">{trackingInfo.payment_status}</span></p>
 				<p><b>Current Location:</b> {trackingInfo.current_location}</p>
 				<p>
 					<b>Estimated Delivery:</b>
