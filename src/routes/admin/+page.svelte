@@ -16,7 +16,7 @@
 
 	let selectedFiles: File[] = [];
 	let filePreviews: { url: string; name: string; type: string }[] = [];
-	let existingFiles: string[] = [];
+	let existingFiles: string[] = []; // filenames stored on record (for editing)
 
 	let historyEntries: { event: string; location?: string; timestamp: string }[] = [];
 	let newHistoryEvent = '';
@@ -24,8 +24,15 @@
 	let newHistoryTimestamp = '';
 
 	const statuses = ['Pending', 'In-transit', 'Held at Customs', 'Delivered'];
+	const paymentStatuses = ['Unpaid', 'Paid', 'Partially Paid', 'Refunded'];
 
 	let formData: any = getEmptyForm();
+
+	function localInputToPbDate(local: string) {
+	if (!local) return '';
+	return new Date(local).toISOString();
+}
+
 
 	function getEmptyForm() {
 		return {
@@ -52,26 +59,34 @@
 	function pbDateToLocalInput(isoString) {
 		if (!isoString) return '';
 		const date = new Date(isoString);
-		return date.toISOString().slice(0, 16);
+		// format to yyyy-mm-ddThh:mm for input[type=datetime-local]
+		const tzOffsetMs = date.getTimezoneOffset() * 60000;
+		const localISO = new Date(date.getTime() - tzOffsetMs).toISOString().slice(0, 16);
+		return localISO;
 	}
 
 	function updateEstimatedDelivery(e) {
-		const value = e.target.value;
+		const value = (e.target as HTMLInputElement).value;
 		formData.estimated_delivery = value ? new Date(value).toISOString() : '';
 	}
 
 	async function loadShipments() {
-		loading = true;
-		try {
-			const records = await pb.collection('shipments').getFullList({ sort: '-created' });
-			shipments = records;
-		} catch (err) {
-			errorMsg = `Failed to load shipments: ${err.message || err}`;
-			setTimeout(() => (errorMsg = null), 4000);
-		} finally {
-			loading = false;
-		}
+	loading = true;
+	try {
+		const records = await pb.collection('shipments').getFullList({ sort: '-created' });
+		shipments = records.map(r => ({
+			...r,
+			history: Array.isArray(r.history) ? r.history : [] // ensures array
+		}));
+	} catch (err) {
+		console.error('loadShipments error', err);
+		errorMsg = `Failed to load shipments: ${err?.message ?? err}`;
+		setTimeout(() => (errorMsg = null), 4000);
+	} finally {
+		loading = false;
 	}
+}
+
 
 	function generateTracking() {
 		formData.tracking_number = `swift${Math.floor(Math.random() * 10000000)}`;
@@ -84,18 +99,23 @@
 		filePreviews = [];
 		existingFiles = [];
 		editing = null;
+		localEstimatedDelivery = '';
 		generateTracking();
 		showForm = true;
 	}
 
 	function editShipment(item: any) {
-		editing = item;
-		existingFiles = Array.isArray(item.package_images) ? [...item.package_images] : [];
-		localEstimatedDelivery = pbDateToLocalInput(item.estimated_delivery);
-		formData = { ...getEmptyForm(), ...item };
-		historyEntries = Array.isArray(item.history) ? [...item.history] : [];
-		showForm = true;
-	}
+	editing = item;
+	existingFiles = Array.isArray(item.package_images) ? [...item.package_images] : [];
+	localEstimatedDelivery = pbDateToLocalInput(item.estimated_delivery);
+	formData = { ...getEmptyForm(), ...item };
+
+	historyEntries = Array.isArray(item.history) ? [...item.history] : []; // <— bind history
+	selectedFiles = [];
+	filePreviews = [];
+	showForm = true;
+}
+
 
 	function handleFileChange(e: Event) {
 		const target = e.target as HTMLInputElement;
@@ -116,61 +136,107 @@
 		if (!editing) return alert('No shipment selected.');
 		if (!confirm('Remove this image?')) return;
 		try {
-			existingFiles.splice(idx, 1);
-			formData.package_images = [...existingFiles];
+			// remove from local list
+			const removed = existingFiles.splice(idx, 1);
+			// update record to drop that file
 			await pb.collection('shipments').update(editing.id, { package_images: existingFiles });
+			// reflect locally
+			formData.package_images = [...existingFiles];
 			alert('Image removed.');
 		} catch (err) {
+			console.error('removeExistingFile error', err);
 			alert('Failed to remove image.');
 		}
 	}
 
 	function addHistoryEntry() {
-		if (!newHistoryEvent.trim()) return;
-		historyEntries.unshift({
-			event: newHistoryEvent.trim(),
-			location: newHistoryLocation.trim() || undefined,
-			timestamp: newHistoryTimestamp || new Date().toISOString()
-		});
-		newHistoryEvent = '';
-		newHistoryLocation = '';
-		newHistoryTimestamp = '';
-	}
+	if (!newHistoryEvent.trim()) return;
 
-	function removeHistoryEntry(i: number) {
-		historyEntries.splice(i, 1);
-	}
+	const isoTimestamp = newHistoryTimestamp
+		? new Date(newHistoryTimestamp).toISOString()
+		: new Date().toISOString();
 
+	historyEntries.unshift({
+		event: newHistoryEvent.trim(),
+		location: newHistoryLocation.trim() || undefined,
+		timestamp: isoTimestamp
+	});
+
+	newHistoryEvent = '';
+	newHistoryLocation = '';
+	newHistoryTimestamp = '';
+}
+
+
+	async function removeHistoryEntry(i: number) {
+	if (!editing?.id) return alert('No shipment selected.');
+
+	historyEntries.splice(i, 1);
+
+	try {
+		await pb.collection('shipments').update(editing.id, { history: historyEntries });
+		successMsg = 'History entry removed';
+		setTimeout(() => (successMsg = null), 2500);
+	} catch (err) {
+		console.error('removeHistoryEntry error', err);
+		errorMsg = 'Failed to remove history entry';
+		setTimeout(() => (errorMsg = null), 3000);
+	}
+}
+
+async function clearAllHistory() {
+	if (!editing?.id) return alert('No shipment selected.');
+
+	if (!confirm('Are you sure you want to clear all history?')) return;
+
+	historyEntries = [];
+
+	try {
+		await pb.collection('shipments').update(editing.id, { history: [] });
+		successMsg = 'All history cleared';
+		setTimeout(() => (successMsg = null), 2500);
+	} catch (err) {
+		console.error('clearAllHistory error', err);
+		errorMsg = 'Failed to clear history';
+		setTimeout(() => (errorMsg = null), 3000);
+	}
+}
+
+
+	// Save shipment: uses FormData so files upload OK via PocketBase
 	async function saveShipment() {
-		if (!formData.tracking_number || !formData.origin || !formData.destination) {
-			errorMsg = 'Tracking number, origin and destination are required';
-			setTimeout(() => (errorMsg = null), 4000);
-			return;
-		}
-		const fd = new FormData();
-		for (const [k, v] of Object.entries({
-			...formData,
-			history: JSON.stringify(historyEntries)
-		})) fd.append(k, String(v ?? ''));
+  try {
+    // Build the data to save
+    const data: any = {
+      ...formData,
+      estimated_delivery: localInputToPbDate(localEstimatedDelivery),
+      history: historyEntries,        // <-- include the array properly
+      package_images: [...existingFiles] // start with existing images
+    };
 
-		selectedFiles.forEach((file) => fd.append('package_images', file, file.name));
+    // If user uploaded new files, add them
+    if (selectedFiles.length > 0) {
+      const uploadedFiles = await uploadFiles(selectedFiles);
+      data.package_images = [...existingFiles, ...uploadedFiles];
+    }
 
-		try {
-			if (editing) {
-				await pb.collection('shipments').update(editing.id, fd);
-				successMsg = 'Shipment updated';
-			} else {
-				await pb.collection('shipments').create(fd);
-				successMsg = 'Shipment created';
-			}
-			setTimeout(() => (successMsg = null), 3000);
-			showForm = false;
-			await loadShipments();
-		} catch (err) {
-			errorMsg = err.message || 'Failed to save shipment';
-			setTimeout(() => (errorMsg = null), 5000);
-		}
-	}
+    if (editing?.id) {
+      // Update record
+      await pb.collection('shipments').update(editing.id, data);
+    } else {
+      // Create new record
+      await pb.collection('shipments').create(data);
+    }
+
+    showForm = false;
+    await loadShipments();
+    alert('Shipment saved successfully!');
+  } catch (err) {
+    console.error('saveShipment error', err);
+    alert(`Error saving shipment: ${err?.message ?? err}`);
+  }
+}
+
 
 	async function deleteShipment(id: string) {
 		if (!confirm('Delete this shipment?')) return;
@@ -179,21 +245,33 @@
 			successMsg = 'Shipment deleted';
 			setTimeout(() => (successMsg = null), 2500);
 			await loadShipments();
-		} catch {
+		} catch (err) {
+			console.error('deleteShipment error', err);
 			errorMsg = 'Failed to delete shipment';
+			setTimeout(() => (errorMsg = null), 3000);
 		}
 	}
 
 	let unsubscribe: (() => void) | null = null;
 	onMount(async () => {
-		await loadShipments();
-		const sub = pb.collection('shipments').subscribe('*', () => loadShipments());
-		unsubscribe = () => sub.unsubscribe();
+	await loadShipments();
+
+	// subscribe once
+	const sub = pb.collection('shipments').subscribe('*', () => {
+		// only reload if the form is not open
+		if (!showForm) loadShipments();
 	});
+	unsubscribe = () => sub.unsubscribe();
+});
+
 	onDestroy(() => unsubscribe?.());
 </script>
 
-
+<style>
+	/* small helper for image grid */
+	.image-grid { display:flex; gap:8px; flex-wrap:wrap; }
+	.thumb { width:72px; height:72px; object-fit:cover; border-radius:6px; border:1px solid rgba(0,0,0,0.06) }
+</style>
 
 <div class="min-h-screen bg-gradient-to-br from-yellow-50 to-red-50 p-6 mt-18">
 	<div class="mx-auto max-w-7xl space-y-6">
@@ -215,60 +293,144 @@
 		{/if}
 
 		{#if showForm}
-			<section
-				class="rounded-2xl border border-red-100 bg-white/90 p-6 shadow-xl"
-				transition:scale
-			>
+			<section class="rounded-2xl border border-red-100 bg-white/90 p-6 shadow-xl" transition:scale>
 				<h2 class="mb-4 text-lg font-semibold text-slate-800">
 					{editing ? '✏️ Edit Shipment' : '🚀 New Shipment'}
 				</h2>
 
 				<div class="grid gap-4 md:grid-cols-2">
-					<!-- Input fields -->
-					<div class="form-control">
-						<label class="label"><span>Tracking Number</span></label>
-						<input class="input input-bordered w-full" bind:value={formData.tracking_number} />
+					<!-- Column 1 -->
+					<div>
+						<div class="form-control mb-2">
+							<label class="label"><span>Tracking Number</span></label>
+							<div class="flex gap-2">
+								<input class="input input-bordered w-full" bind:value={formData.tracking_number} />
+								<button class="btn btn-ghost" on:click={generateTracking}>Gen</button>
+							</div>
+						</div>
+
+						<div class="form-control mb-2">
+							<label class="label"><span>Sender Name</span></label>
+							<input class="input input-bordered w-full" bind:value={formData.sender_name} />
+						</div>
+
+						<div class="form-control mb-2">
+							<label class="label"><span>Receiver Name</span></label>
+							<input class="input input-bordered w-full" bind:value={formData.receiver_name} />
+						</div>
+
+						<div class="form-control mb-2">
+							<label class="label"><span>Receiver Email</span></label>
+							<input class="input input-bordered w-full" type="email" bind:value={formData.receiver_email} />
+						</div>
+
+						<div class="form-control mb-2">
+							<label class="label"><span>Receiver Phone</span></label>
+							<input class="input input-bordered w-full" bind:value={formData.receiver_phone} />
+						</div>
+
+						<div class="form-control mb-2">
+							<label class="label"><span>Package Contents</span></label>
+							<textarea class="textarea textarea-bordered w-full" rows="3" bind:value={formData.package_contents}></textarea>
+						</div>
+
+						<div class="grid grid-cols-2 gap-2">
+							<div class="form-control mb-2">
+								<label class="label"><span>Weight (kg)</span></label>
+								<input class="input input-bordered" type="number" min="0" step="0.01" bind:value={formData.weight} />
+							</div>
+
+							<div class="form-control mb-2">
+								<label class="label"><span>Amount Due (USD)</span></label>
+								<input class="input input-bordered" type="number" min="0" step="0.01" bind:value={formData.amount_due} />
+							</div>
+						</div>
 					</div>
 
-					<div class="form-control">
-						<label class="label"><span>Sender Name</span></label>
-						<input class="input input-bordered w-full" bind:value={formData.sender_name} />
-					</div>
+					<!-- Column 2 -->
+					<div>
+						<div class="form-control mb-2">
+							<label class="label"><span>Origin</span></label>
+							<input class="input input-bordered w-full" bind:value={formData.origin} />
+						</div>
 
-					<div class="form-control">
-						<label class="label"><span>Receiver Name</span></label>
-						<input class="input input-bordered w-full" bind:value={formData.receiver_name} />
-					</div>
+						<div class="form-control mb-2">
+							<label class="label"><span>Destination</span></label>
+							<input class="input input-bordered w-full" bind:value={formData.destination} />
+						</div>
 
-					<div class="form-control">
-						<label class="label"><span>Receiver Email</span></label>
-						<input class="input input-bordered w-full" type="email" bind:value={formData.receiver_email} />
-					</div>
+						<div class="form-control mb-2">
+							<label class="label"><span>Current Location</span></label>
+							<input class="input input-bordered w-full" bind:value={formData.current_location} />
+						</div>
 
-					<div class="form-control">
-						<label class="label"><span>Origin</span></label>
-						<input class="input input-bordered w-full" bind:value={formData.origin} />
-					</div>
+						<div class="form-control mb-2">
+							<label class="label"><span>Status</span></label>
+							<select class="select select-bordered w-full" bind:value={formData.status}>
+								{#each statuses as s}
+									<option>{s}</option>
+								{/each}
+							</select>
+						</div>
 
-					<div class="form-control">
-						<label class="label"><span>Destination</span></label>
-						<input class="input input-bordered w-full" bind:value={formData.destination} />
-					</div>
+						<div class="form-control mb-2">
+							<label class="label"><span>Estimated Delivery</span></label>
+							<input type="datetime-local" class="input input-bordered w-full" bind:value={localEstimatedDelivery} on:change={updateEstimatedDelivery} />
+						</div>
 
-					<div class="form-control">
-						<label class="label"><span>Status</span></label>
-						<select class="select select-bordered w-full" bind:value={formData.status}>
-							{#each statuses as s}
-								<option>{s}</option>
-							{/each}
-						</select>
-					</div>
+						<div class="form-control mb-2">
+							<label class="label"><span>Payment Status</span></label>
+							<select class="select select-bordered w-full" bind:value={formData.payment_status}>
+								{#each paymentStatuses as p}
+									<option>{p}</option>
+								{/each}
+							</select>
+						</div>
 
-					<div class="form-control">
-						<label class="label"><span>Estimated Delivery</span></label>
-						<input type="datetime-local" class="input input-bordered w-full" bind:value={localEstimatedDelivery} on:change={updateEstimatedDelivery} />
+						<div class="form-control mb-2">
+							<label class="label"><span>Payment Reason</span></label>
+							<input class="input input-bordered w-full" bind:value={formData.payment_reason} />
+						</div>
 					</div>
 				</div>
+
+				<!-- Files -->
+				<!-- <div class="mt-4">
+					<label class="label"><span>Package Images</span></label>
+
+					{#if editing && existingFiles.length}
+						<div class="mb-3">
+							<div class="text-sm font-semibold mb-2">Existing images</div>
+							<div class="image-grid">
+								{#each existingFiles as ef, i}
+									<div class="relative">
+										Show image from PocketBase files endpoint; adapt URL as needed
+										<img src={`https://jpi.sophnexacademy.com.ng/api/files/shipments/${editing.id}/${ef}`} alt={ef} class="thumb" />
+										<button class="btn btn-xs btn-ghost absolute top-0 right-0" on:click={() => removeExistingFile(i)}>✕</button>
+									</div>
+								{/each}
+							</div>
+						</div>
+					{/if}
+
+					<div class="mb-2">
+						<input type="file" multiple accept="image/*" on:change={handleFileChange} />
+					</div>
+
+					{#if filePreviews.length}
+						<div class="mb-2">
+							<div class="text-sm font-semibold mb-2">New uploads</div>
+							<div class="image-grid">
+								{#each filePreviews as fp, i}
+									<div class="relative">
+										<img src={fp.url} alt={fp.name} class="thumb" />
+										<button class="btn btn-xs btn-ghost absolute top-0 right-0" on:click={() => removeSelectedFile(i)}>✕</button>
+									</div>
+								{/each}
+							</div>
+						</div>
+					{/if}
+				</div> -->
 
 				<!-- History -->
 				<div class="mt-6 rounded-lg border border-gray-200 bg-gray-50 p-4">
@@ -276,12 +438,18 @@
 					<div class="grid grid-cols-1 gap-2 md:grid-cols-3">
 						<input class="input input-sm input-bordered" placeholder="Event" bind:value={newHistoryEvent} />
 						<input class="input input-sm input-bordered" placeholder="Location" bind:value={newHistoryLocation} />
-						<input class="input input-sm input-bordered" placeholder="Timestamp (optional)" bind:value={newHistoryTimestamp} />
+						<input
+  type="datetime-local"
+  class="input input-sm input-bordered"
+  bind:value={newHistoryTimestamp}
+/>
+
 					</div>
 					<div class="mt-2 flex gap-2">
-						<button class="btn btn-outline btn-sm" on:click={addHistoryEntry}>Add</button>
-						<button class="btn btn-sm" on:click={() => (historyEntries = [])}>Clear all</button>
-					</div>
+	<button class="btn btn-outline btn-sm" on:click={addHistoryEntry}>Add</button>
+	<button class="btn btn-sm" on:click={clearAllHistory}>Clear all</button>
+</div>
+
 					{#if historyEntries.length}
 						<ul class="mt-3 max-h-40 space-y-2 overflow-auto">
 							{#each historyEntries as h, idx}
@@ -310,9 +478,7 @@
 			{#if loading}
 				<div class="p-6 text-center">Loading shipments…</div>
 			{:else if !shipments.length}
-				<div class="rounded-lg bg-white p-6 text-center shadow">
-					📭 No shipments found.
-				</div>
+				<div class="rounded-lg bg-white p-6 text-center shadow">📭 No shipments found.</div>
 			{:else}
 				<div class="overflow-x-auto rounded-2xl border border-gray-100 bg-white shadow-xl">
 					<table class="table table-zebra w-full">
@@ -335,9 +501,7 @@
 									<td>{s.sender_name}</td>
 									<td>{s.receiver_name}</td>
 									<td>
-										<span
-											class={`badge ${s.status === 'Delivered' ? 'badge-success' :
-												s.status === 'Held at Customs' ? 'badge-warning' : 'badge-info'}`}>
+										<span class={`badge ${s.status === 'Delivered' ? 'badge-success' : s.status === 'Held at Customs' ? 'badge-warning' : 'badge-info'}`}>
 											{s.status}
 										</span>
 									</td>

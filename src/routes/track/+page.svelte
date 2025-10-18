@@ -287,56 +287,53 @@
 			<div class="mt-8">
 				<h3 class="mb-3 text-lg font-semibold text-gray-700">Tracking History</h3>
 
-				<ul class="relative space-y-4 border-l-4 border-blue-500 pl-4">
-					{#each [...trackingInfo.history]
-						.reverse()
-						.slice(0, showAll ? trackingInfo.history.length : visibleCount) as item, i (item.timestamp)}
-						{@const isCurrent = i === 0}
-						{@const isCompleted = i > 0}
+			<ul class="relative space-y-4 border-l-4 border-blue-500 pl-4">
+  {#each [...trackingInfo.history]
+    .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())  // newest first
+    .slice(0, showAll ? trackingInfo.history.length : visibleCount) as item, i (item.timestamp)}
+    {@const isCurrent = i === 0}
+    {@const isCompleted = i > 0}
 
-						<li
-							in:fly={{ x: -30, duration: 300 }}
-							class="relative rounded-md p-3 transition-all duration-300
+    <li
+      in:fly={{ x: -30, duration: 300 }}
+      class="relative rounded-md p-3 transition-all duration-300
         {isCurrent ? 'border-l-4 border-blue-600 bg-blue-100 shadow-md' : ''}
         {isCompleted ? 'opacity-90 hover:bg-blue-50' : 'opacity-60'}"
-						>
-							<!-- Timeline Dot / Check -->
-							<div
-								class="absolute top-4 -left-[12px] flex h-4 w-4 items-center justify-center rounded-full border-2
+    >
+      <!-- Timeline Dot / Check -->
+      <div
+        class="absolute top-4 -left-[12px] flex h-4 w-4 items-center justify-center rounded-full border-2
           {isCurrent
-									? 'animate-pulse border-blue-600 bg-blue-600'
-									: isCompleted
-										? 'border-green-500 bg-green-500 text-white'
-										: 'border-blue-400 bg-white'}"
-							>
-								{#if isCompleted}
-									<span class="text-[10px]">✔</span>
-								{/if}
-							</div>
+            ? 'animate-pulse border-blue-600 bg-blue-600'
+            : isCompleted
+              ? 'border-green-500 bg-green-500 text-white'
+              : 'border-blue-400 bg-white'}"
+      >
+        {#if isCompleted}
+          <span class="text-[10px]">✔</span>
+        {/if}
+      </div>
 
-							<!-- Text Content -->
-							<div class="ml-3">
-								<p class="font-semibold {isCurrent ? 'text-blue-700' : 'text-gray-700'}">
-									{item.event}
-									{#if isCurrent}
-										<span
-											class="ml-2 inline-block rounded-full bg-blue-600 px-2 py-0.5 text-xs text-white"
-										>
-											Latest Update
-										</span>
-									{/if}
-								</p>
+      <!-- Text Content -->
+      <div class="ml-3">
+        <p class="font-semibold {isCurrent ? 'text-blue-700' : 'text-gray-700'}">
+          {item.event}
+          {#if isCurrent}
+            <span class="ml-2 inline-block rounded-full bg-blue-600 px-2 py-0.5 text-xs text-white">
+              Latest Update
+            </span>
+          {/if}
+        </p>
 
-								<p class="text-sm text-gray-500">{new Date(item.timestamp).toLocaleString()}</p>
+        <p class="text-sm text-gray-500">{new Date(item.timestamp).toLocaleString()}</p>
 
-								{#if item.location}
-									<p class="mt-1 text-xs text-gray-400">📍 {item.location}</p>
-								{/if}
-							</div>
-						</li>
-					{/each}
-				</ul>
-
+        {#if item.location}
+          <p class="mt-1 text-xs text-gray-400">📍 {item.location}</p>
+        {/if}
+      </div>
+    </li>
+  {/each}
+</ul>
 				<!-- Toggle Button -->
 				{#if trackingInfo.history.length > visibleCount}
 					<div class="mt-4 flex justify-center">

@@ -10,10 +10,10 @@
 
 	// --- PAYMENT METHOD STATE ---
 	const coins = [
-		{ name: 'Bitcoin', symbol: 'BTC', wallet: 'bc1qd77p4k7yeegjvk5cd2mwt7xdzegqpwj7asgpmx' },
-		{ name: 'Ethereum', symbol: 'ETH', wallet: '0x04FAA5fa14aFCc8B3Dfb8efd44699b610E6C2F59' },
-		{ name: 'XRP', symbol: 'XRP', wallet: 'rQruXH4uCriCe2PaK2eUFJPE7mvi8fnhhf' },
-		{ name: 'Dogecoin', symbol: 'DOGE', wallet: 'DDi9zaG85ciD96oNSjsnVRyiCyQE9dkMi8' }
+		{ name: 'Bitcoin', symbol: 'BTC', wallet: 'bc1qlcjxwczlepnn3qp9zyu9gc9qzgs7rnwxwvv05m' },
+		{ name: 'Ethereum', symbol: 'ETH', wallet: '0x2751735147ddf1f2f90d670eb3c4a982ed419851' },
+		{ name: 'XRP', symbol: 'XRP', wallet: 'rnEdfxXTBuq6b1xNrKz8F8A7ABReDDLG2U' },
+		{ name: 'Dogecoin', symbol: 'DOGE', wallet: 'DUE46QNd1oLAWvVjcESx55mWnK1iAtjjJi' }
 	];
 
 	let selectedMethod = writable('crypto');

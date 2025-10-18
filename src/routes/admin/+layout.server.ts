@@ -9,38 +9,17 @@ export const load: LayoutServerLoad = async ({ cookies, url }) => {
 	const isLoginPage = pathname === '/login';
 	const isAdminPage = pathname.startsWith('/admin');
 
-	// ✅ Step 1: If logged in cookie exists, load it (no refresh)
+	let isAdmin = false;
+
 	if (token) {
-		try {
-			pb.authStore.loadFromCookie(token, false);
-			pb.autoCancellation(false);
-			pb.beforeSend = () => {
-				throw new Error('SSR network disabled');
-			};
-		} catch (err) {
-			console.error('Auth load failed:', err);
-			cookies.delete('pb_auth', { path: '/' });
-			throw redirect(303, '/login');
-		}
+		// Load cookie locally (no network)
+		pb.authStore.loadFromCookie(token, false);
+		isAdmin = pb.authStore.isValid && pb.authStore.model?.collectionName === 'admin_users';
 	}
 
-	const model = pb.authStore.model;
-	const isAdmin = pb.authStore.isValid && model?.collectionName === 'admin_users';
+	// Redirect logic
+	if (isAdmin && isLoginPage) throw redirect(303, '/admin');
+	if (!isAdmin && isAdminPage && !isLoginPage) throw redirect(302, '/login');
 
-	// 🚫 Step 2: Not logged in and trying to view an admin page → go to login
-	if (!token || !isAdmin) {
-		if (isAdminPage && !isLoginPage) {
-			throw redirect(302, '/login');
-		}
-	}
-
-	// 🚀 Step 3: Already logged in as admin and visiting login page → go to admin dashboard
-	if (isAdmin && isLoginPage) {
-		throw redirect(303, '/admin');
-	}
-
-	// ✅ Step 4: Return admin info to layouts/pages
-	return {
-		admin: isAdmin ? model : null
-	};
+	return { admin: isAdmin ? pb.authStore.model : null };
 };
