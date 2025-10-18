@@ -63,7 +63,7 @@
 	</form>
 
 	<div class="mt-12 text-center text-gray-700">
-		<p>📍 Headquarters: 123 SwiftPort Blvd, New York, USA</p>
+		<p>📍 Headquarters: 827 Broadway, New York, NY 100003, United States</p>
 		<p>📞 Phone: +1 (555) 234-6789</p>
 		<p>💬 WhatsApp: <a href="https://wa.me/15552346789" class="text-blue-600">Chat Now</a></p>
 		<p>
