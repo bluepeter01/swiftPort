@@ -36,7 +36,7 @@
 			<div class="collapse-content text-sm">
 				If you do not have a tracking number, we advise you to contact your shipper. However, if you
 				have other shipping reference numbers, they may work using shipment tracking systems of the
-				specific business unit in charge of the shipment (for example: DHL Express or DHL Freight).
+				specific business unit in charge of the shipment (for example: SWIFTPORT Express or SWIFTPORT Freight).
 			</div>
 		</div>
 	</div>
