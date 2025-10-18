@@ -244,44 +244,53 @@
 
 			<!-- 📊 Shipment Progress Bar -->
 			<div class="mt-6">
-				<h3 class="mb-2 text-lg font-semibold text-gray-700">Shipment Progress</h3>
+  <h3 class="mb-2 text-lg font-semibold text-gray-700">Shipment Progress</h3>
 
-				<div class="flex items-center justify-between text-sm font-medium text-gray-500">
-					<span>Pending</span>
-					<span>In Transit</span>
-					<span>Delivered</span>
-				</div>
+  <div class="flex items-center justify-between text-sm font-medium text-gray-500">
+    <span>Pending</span>
+    <span>In Transit</span>
+    <span>Arrived</span>
+    <span>Delivered</span>
+  </div>
 
-				<div class="relative mt-2 h-3 rounded-full bg-gray-200">
-					<div
-						class="absolute h-3 rounded-full transition-all duration-700 ease-out"
-						style="
-				width: {trackingInfo.status === 'Delivered'
-							? '100%'
-							: trackingInfo.status === 'Held at Customs'
-								? '70%'
-								: trackingInfo.status === 'In-transit'
-									? '60%'
-									: '30%'};
-				background-color: {trackingInfo.status === 'Held at Customs' ? '#facc15' /* yellow */ : '#3b82f6'};
-			"
-					></div>
-				</div>
+  <div class="relative mt-2 h-3 rounded-full bg-gray-200 overflow-hidden">
+    <div
+      class="absolute h-3 rounded-full transition-all duration-700 ease-out"
+      style="
+        width: {trackingInfo.status === 'Delivered'
+          ? '100%'
+          : trackingInfo.status === 'Held at Customs'
+            ? '70%'
+            : trackingInfo.status === 'Arrived'
+              ? '80%'
+              : trackingInfo.status === 'In-transit'
+                ? '60%'
+                : '30%'};
+        background-color: {trackingInfo.status === 'Held at Customs' ? '#facc15' : '#3b82f6'};
+      "
+    >
+      {#if trackingInfo.status === 'Arrived'}
+        <div class="absolute inset-0 bg-blue-400 animate-pulse opacity-50"></div>
+      {/if}
+    </div>
+  </div>
 
-				<!-- Status label -->
-				<p class="mt-2 text-center text-sm text-gray-600">
-					Current Status:
-					<span
-						class={trackingInfo.status === 'Held by Customs'
-							? 'font-semibold text-yellow-600'
-							: trackingInfo.status === 'Delivered'
-								? 'font-semibold text-green-600'
-								: 'font-semibold text-blue-600'}
-					>
-						{trackingInfo.status}
-					</span>
-				</p>
-			</div>
+  <!-- Status label -->
+  <p class="mt-2 text-center text-sm text-gray-600">
+    Current Status:
+    <span
+      class={trackingInfo.status === 'Held by Customs'
+        ? 'font-semibold text-yellow-600'
+        : trackingInfo.status === 'Delivered'
+          ? 'font-semibold text-green-600'
+          : trackingInfo.status === 'Arrived'
+            ? 'font-semibold text-blue-500 animate-pulse'
+            : 'font-semibold text-blue-600'}
+    >
+      {trackingInfo.status}
+    </span>
+  </p>
+</div>
 
 			<!-- 🕒 Tracking History -->
 			<div class="mt-8">
