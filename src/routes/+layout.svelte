@@ -19,6 +19,6 @@
 
 <!-- Floating WhatsApp chat button -->
 <WhatsAppButton
-	phone="15551234567"
+	phone="+12896702036"
 	message="Hello! I’d like to inquire about SwiftPort shipping."
 />
