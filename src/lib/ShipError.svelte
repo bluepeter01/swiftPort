@@ -43,7 +43,7 @@
 		<!-- Call to action buttons -->
 		<div class="modal-action flex flex-col justify-end gap-3 sm:flex-row">
 			<a
-				href="https://wa.me/1234567890"
+				href="https://wa.me/+12896702036"
 				target="_blank"
 				class="btn border-none bg-green-500 text-white transition-transform duration-300 hover:scale-105 hover:bg-green-600"
 			>
