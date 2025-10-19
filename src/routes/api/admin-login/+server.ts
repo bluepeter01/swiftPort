@@ -1,34 +1,40 @@
-import PocketBase from 'pocketbase';
 import { json } from '@sveltejs/kit';
+import PocketBase from 'pocketbase';
 
-export const POST = async ({ request, cookies }) => {
-  const { email, password } = await request.json();
-  const pb = new PocketBase('https://jpi.sophnexacademy.com.ng');
+export const POST = async ({ request, cookies, url }) => {
+	try {
+		const { email, password } = await request.json();
+		const redirectTo = url.searchParams.get('redirectTo') || '/admin';
 
-  try {
-    const authData = await pb.collection('admin_users').authWithPassword(email, password);
+		const pb = new PocketBase('https://jpi.sophnexacademy.com.ng');
 
-    // Save auth in cookie
-    const cookie = pb.authStore.exportToCookie({
-      httpOnly: false, // ✅ allow frontend scripts to read it (optional)
-      path: '/',
-      sameSite: 'lax',
-      secure: false, // change to true in production with HTTPS
-      maxAge: 60 * 60 * 24 * 7
-    });
+		const authData = await pb.collection('admin_users').authWithPassword(email, password);
 
-cookies.set('pb_auth', pb.authStore.exportToCookie(), {
-  path: '/',
-  httpOnly: true,
-  sameSite: 'lax',
-  secure: process.env.NODE_ENV === 'production', // ✅ only secure in production
-  maxAge: 60 * 60 * 24 * 7
-});
+		// Make sure it's actually an admin
+		if (!authData.record?.isAdmin) {
+			pb.authStore.clear();
+			return json({ error: true, message: 'Access denied. Admins only.' }, { status: 403 });
+		}
 
+		// ✅ Save cookie
+		cookies.set('pb_auth', pb.authStore.exportToCookie(), {
+			path: '/',
+			httpOnly: true,
+			sameSite: 'lax',
+			secure: false, // true in production
+			maxAge: 60 * 60 * 24 * 7
+		});
 
-    return json({ success: true });
-  } catch (err) {
-    console.error('Admin login failed:', err);
-    return json({ success: false, error: 'Invalid email or password' }, { status: 401 });
-  }
+		return json({
+			success: true,
+			message: 'Admin login successful.',
+			redirectTo
+		});
+	} catch (err) {
+		console.error('Admin login failed:', err);
+		return json({
+			error: true,
+			message: err?.response?.data?.message || 'Invalid email or password.'
+		}, { status: 401 });
+	}
 };
