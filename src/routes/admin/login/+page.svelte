@@ -62,9 +62,10 @@
 		{/if}
 
 		<div class="form-control mb-3">
-			<label class="label text-sm font-semibold text-gray-700">Email</label>
+			<label for="email" class="label text-sm font-semibold text-gray-700">Email</label>
 			<input
 				type="email"
+				id="email"
 				bind:value={email}
 				required
 				class="input-bordered input w-full focus:ring-2 focus:ring-red-500"
@@ -74,9 +75,10 @@
 		</div>
 
 		<div class="form-control mb-5">
-			<label class="label text-sm font-semibold text-gray-700">Password</label>
+			<label for="password" class="label text-sm font-semibold text-gray-700">Password</label>
 			<input
 				type="password"
+				id="password"
 				bind:value={password}
 				required
 				class="input-bordered input w-full focus:ring-2 focus:ring-red-500"

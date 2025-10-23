@@ -1,9 +1,8 @@
 import PocketBase from 'pocketbase';
 import type { Handle, HandleFetch } from '@sveltejs/kit';
-import { POCKETBASE_URL } from '$env/static/private';
 
 export const handle: Handle = async ({ event, resolve }) => {
-	event.locals.pb = new PocketBase(POCKETBASE_URL);
+	event.locals.pb = new PocketBase('https://jpi.sophnexacademy.com.ng');
 
 	// load the store data from the request cookie string
 	event.locals.pb.authStore.loadFromCookie(event.request.headers.get('cookie') || '');

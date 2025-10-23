@@ -313,10 +313,11 @@
 					<!-- Column 1 -->
 					<div class="space-y-2">
 						<div class="form-control mb-2">
-							<label class="label"><span>Tracking Number</span></label>
+							<label for="tracking_number" class="label"><span>Tracking Number</span></label>
 							<div class="flex gap-2">
 								<input
 									class="input-bordered input w-full"
+									id="tracking_number"
 									bind:value={formData.tracking_number}
 									required
 								/>
@@ -325,47 +326,52 @@
 						</div>
 
 						<div class="form-control mb-2">
-							<label class="label"><span>Sender Name</span></label>
+							<label for="sender_name" class="label"><span>Sender Name</span></label>
 							<input
 								class="input-bordered input w-full"
+								id="sender_name"
 								bind:value={formData.sender_name}
 								required
 							/>
 						</div>
 
 						<div class="form-control mb-2">
-							<label class="label"><span>Receiver Name</span></label>
+							<label for="receiver_name" class="label"><span>Receiver Name</span></label>
 							<input
 								class="input-bordered input w-full"
+								id="receiver_name"
 								bind:value={formData.receiver_name}
 								required
 							/>
 						</div>
 
 						<div class="form-control mb-2">
-							<label class="label"><span>Receiver Email</span></label>
+							<label for="receiver_email" class="label"><span>Receiver Email</span></label>
 							<input
 								class="input-bordered input w-full"
 								type="email"
+								id="receiver_email"
 								bind:value={formData.receiver_email}
 								required
 							/>
 						</div>
 
 						<div class="form-control mb-2">
-							<label class="label"><span>Receiver Phone</span></label>
+							<label for="receiver_phone" class="label"><span>Receiver Phone</span></label>
 							<input
 								class="input-bordered input w-full"
+								id="receiver_phone"
 								bind:value={formData.receiver_phone}
 								required
 							/>
 						</div>
 
 						<div class="form-control mb-2">
-							<label class="label"><span>Package Contents</span></label>
+							<label for="package_contents" class="label"><span>Package Contents</span></label>
 							<textarea
 								class="textarea-bordered textarea w-full"
 								rows="3"
+								id="package_contents"
 								bind:value={formData.package_contents}
 								required
 							></textarea>
@@ -373,10 +379,11 @@
 
 						<div class="grid grid-cols-2 gap-2">
 							<div class="form-control">
-								<label class="label"><span>Weight (kg)</span></label>
+								<label for="weight" class="label"><span>Weight (kg)</span></label>
 								<input
 									class="input-bordered input"
 									type="number"
+									id="weight"
 									min="0"
 									step="0.01"
 									bind:value={formData.weight}
@@ -385,10 +392,11 @@
 							</div>
 
 							<div class="form-control">
-								<label class="label"><span>Amount Due (USD)</span></label>
+								<label for="amount_due" class="label"><span>Amount Due (USD)</span></label>
 								<input
 									class="input-bordered input"
 									type="number"
+									id="amount_due"
 									min="0"
 									step="0.01"
 									bind:value={formData.amount_due}
@@ -401,27 +409,41 @@
 					<!-- Column 2 -->
 					<div class="space-y-2">
 						<div class="form-control mb-2">
-							<label class="label"><span>Origin</span></label>
-							<input class="input-bordered input w-full" bind:value={formData.origin} required />
+							<label for="origin" class="label"><span>Origin</span></label>
+							<input
+								class="input-bordered input w-full"
+								id="origin"
+								bind:value={formData.origin}
+								required
+							/>
 						</div>
 
 						<div class="form-control mb-2">
-							<label class="label"><span>Destination</span></label>
+							<label for="destination" class="label"><span>Destination</span></label>
 							<input
 								class="input-bordered input w-full"
+								id="destination"
 								bind:value={formData.destination}
 								required
 							/>
 						</div>
 
 						<div class="form-control mb-2">
-							<label class="label"><span>Current Location</span></label>
-							<input class="input-bordered input w-full" bind:value={formData.current_location} />
+							<label for="current_location" class="label"><span>Current Location</span></label>
+							<input
+								class="input-bordered input w-full"
+								id="current_location"
+								bind:value={formData.current_location}
+							/>
 						</div>
 
 						<div class="form-control mb-2">
-							<label class="label"><span>Status</span></label>
-							<select class="select-bordered select w-full" bind:value={formData.status}>
+							<label for="status" class="label"><span>Status</span></label>
+							<select
+								class="select-bordered select w-full"
+								id="status"
+								bind:value={formData.status}
+							>
 								{#each statuses as s}
 									<option>{s}</option>
 								{/each}
@@ -429,9 +451,10 @@
 						</div>
 
 						<div class="form-control mb-2">
-							<label class="label"><span>Estimated Delivery</span></label>
+							<label for="estimated_delivery" class="label"><span>Estimated Delivery</span></label>
 							<input
 								type="datetime-local"
+								id="estimated_delivery"
 								class="input-bordered input w-full"
 								bind:value={localEstimatedDelivery}
 								required
@@ -440,8 +463,12 @@
 						</div>
 
 						<div class="form-control mb-2">
-							<label class="label"><span>Payment Status</span></label>
-							<select class="select-bordered select w-full" bind:value={formData.payment_status}>
+							<label for="payment_status" class="label"><span>Payment Status</span></label>
+							<select
+								class="select-bordered select w-full"
+								id="payment_status"
+								bind:value={formData.payment_status}
+							>
 								{#each paymentStatuses as p}
 									<option>{p}</option>
 								{/each}
@@ -449,8 +476,12 @@
 						</div>
 
 						<div class="form-control mb-2">
-							<label class="label"><span>Payment Reason</span></label>
-							<input class="input-bordered input w-full" bind:value={formData.payment_reason} />
+							<label for="payment_reason" class="label"><span>Payment Reason</span></label>
+							<input
+								class="input-bordered input w-full"
+								id="payment_reason"
+								bind:value={formData.payment_reason}
+							/>
 						</div>
 					</div>
 				</div>
