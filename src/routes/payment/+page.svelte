@@ -66,9 +66,7 @@
 			});
 
 			showModal.set(true);
-			modalMessage.set(
-				`You will receive our bank account details via WhatsApp shortly.`
-			);
+			modalMessage.set(`You will receive our bank account details via WhatsApp shortly.`);
 			waiting.set(false);
 		} catch (err) {
 			console.error(err);
@@ -85,14 +83,12 @@
 		<button
 			class="btn"
 			class:btn-primary={$selectedMethod === 'crypto'}
-			on:click={() => selectedMethod.set('crypto')}
-			>Crypto</button
+			on:click={() => selectedMethod.set('crypto')}>Crypto</button
 		>
 		<button
 			class="btn"
 			class:btn-primary={$selectedMethod === 'wire'}
-			on:click={() => selectedMethod.set('wire')}
-			>Wire Transfer</button
+			on:click={() => selectedMethod.set('wire')}>Wire Transfer</button
 		>
 	</div>
 
@@ -118,7 +114,9 @@
 				<div class="rounded-xl bg-white p-6 text-center shadow-lg">
 					<h2 class="mb-4 text-xl font-bold">{$selectedCoin.name} Wallet</h2>
 
-					<div class="mb-4 flex items-center justify-between rounded-lg border bg-white p-4 font-mono">
+					<div
+						class="mb-4 flex items-center justify-between rounded-lg border bg-white p-4 font-mono"
+					>
 						<span class="truncate">{$selectedCoin.wallet}</span>
 						<button class="btn btn-sm btn-primary" on:click={() => copyAddress($selectedCoin)}>
 							{#if $copied}Copied!{/if}
@@ -163,14 +161,11 @@
 
 	<!-- MODAL -->
 	{#if $showModal}
-		<div class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+		<div class="bg-opacity-50 fixed inset-0 z-50 flex items-center justify-center bg-black">
 			<div class="w-80 rounded-xl bg-white p-6 text-center shadow-lg">
 				<h2 class="mb-4 text-lg font-bold">Payment Instructions</h2>
 				<p class="mb-4 text-gray-700">{$modalMessage}</p>
-				<a
-					href="https://wa.me/15551234567"
-					target="_blank"
-					class="btn btn-success w-full mb-2"
+				<a href="https://wa.me/+18133948987" target="_blank" class="btn mb-2 w-full btn-success"
 					>Open WhatsApp</a
 				>
 				<button class="btn w-full" on:click={() => showModal.set(false)}>Close</button>
@@ -178,4 +173,3 @@
 		</div>
 	{/if}
 </div>
-
