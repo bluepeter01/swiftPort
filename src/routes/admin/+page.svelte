@@ -91,7 +91,6 @@
 				history: Array.isArray(r.history) ? r.history : [] // ensures array
 			}));
 		} catch (err) {
-			console.error('loadShipments error', err);
 			errorMsg = `Failed to load shipments: ${err?.message ?? err}`;
 			setTimeout(() => (errorMsg = null), 4000);
 		} finally {
@@ -155,8 +154,7 @@
 			// reflect locally
 			formData.package_images = [...existingFiles];
 			alert('Image removed.');
-		} catch (err) {
-			console.error('removeExistingFile error', err);
+		} catch (err: any) {
 			alert('Failed to remove image.');
 		}
 	}
@@ -191,8 +189,7 @@
 			await pb.collection('shipments').update(editing.id, { history: historyEntries });
 			successMsg = 'History entry removed';
 			setTimeout(() => (successMsg = null), 2500);
-		} catch (err) {
-			console.error('removeHistoryEntry error', err);
+		} catch (err: any) {
 			errorMsg = 'Failed to remove history entry';
 			setTimeout(() => (errorMsg = null), 3000);
 		}
@@ -209,8 +206,7 @@
 			await pb.collection('shipments').update(editing.id, { history: [] });
 			successMsg = 'All history cleared';
 			setTimeout(() => (successMsg = null), 2500);
-		} catch (err) {
-			console.error('clearAllHistory error', err);
+		} catch (err: any) {
 			errorMsg = 'Failed to clear history';
 			setTimeout(() => (errorMsg = null), 3000);
 		}
@@ -245,8 +241,7 @@
 			showForm = false;
 			await loadShipments();
 			alert('Shipment saved successfully!');
-		} catch (err) {
-			console.error('saveShipment error', err);
+		} catch (err: any) {
 			alert(`Error saving shipment: ${err?.message ?? err}`);
 		}
 	}
@@ -258,8 +253,7 @@
 			successMsg = 'Shipment deleted';
 			setTimeout(() => (successMsg = null), 2500);
 			await loadShipments();
-		} catch (err) {
-			console.error('deleteShipment error', err);
+		} catch (err: any) {
 			errorMsg = 'Failed to delete shipment';
 			setTimeout(() => (errorMsg = null), 3000);
 		}

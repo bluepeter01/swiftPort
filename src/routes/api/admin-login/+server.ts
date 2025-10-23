@@ -4,16 +4,9 @@ import PocketBase from 'pocketbase';
 export const POST = async ({ request, cookies, url }) => {
     try {
         const { email, password } = await request.json();
-        console.log('[LOGIN ATTEMPT]', email);
 
         const pb = new PocketBase('https://jpi.sophnexacademy.com.ng');
         const authData = await pb.collection('admin_users').authWithPassword(email, password)
-
-
-        console.log('[LOGIN SUCCESS]', {
-            isAdmin: authData.record?.isAdmin,
-            token: pb.authStore.token ? '✅ token present' : '❌ token missing'
-        });
 
         // 💥 FIX: Change sameSite to 'Lax' for local HTTP development.
         // 'SameSite: None' requires 'Secure: true' (HTTPS), which is not met here.
@@ -23,8 +16,6 @@ export const POST = async ({ request, cookies, url }) => {
             sameSite: 'Lax', // Changed from 'None'
             path: '/'
         });
-
-        console.log('[SET-COOKIE]', cookieString);
 
         const response = json({
             success: true,
@@ -36,7 +27,6 @@ export const POST = async ({ request, cookies, url }) => {
         return response;
 
     } catch (err: any) {
-        console.error('[LOGIN ERROR]', err);
         return json(
             {
                 error: true,

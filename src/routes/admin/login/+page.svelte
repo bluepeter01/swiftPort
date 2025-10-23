@@ -39,8 +39,7 @@
 
 			window.location.href = '/admin';
 			// await goto('/admin');
-		} catch (err) {
-			console.error('Login error:', err);
+		} catch (err: any) {
 			errorMsg = '❌ Invalid email or password.';
 		} finally {
 			loading = false;

@@ -41,7 +41,6 @@
 			const response = await fetch(`/api/track/${lowercasedTrackCode}`);
 			if (response.ok) {
 				const data = await response.json();
-				console.log('Tracking data:', data);
 				trackingInfo = data;
 			} else {
 				const errorData = await response.json();
@@ -74,8 +73,6 @@
 
 		if (trackCode) {
 			await handleTrack(); // Auto-fetch data on mount
-		} else {
-			console.log('No tracking code provided yet.');
 		}
 	});
 </script>
