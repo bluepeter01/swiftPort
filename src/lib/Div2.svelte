@@ -1,4 +1,4 @@
-<div class="hero bg-base-2000 mt-6 min-h-screen bg-red-200/30">
+<div class="bg-base-2000 hero mt-6 min-h-screen bg-red-200/30">
 	<div
 		class="hero-content mx-auto flex flex-col items-center justify-center space-x-4 md:w-[800px] lg:flex-row"
 	>
@@ -19,8 +19,11 @@
 				logistics network ensures your cargo reaches its destination safely, securely, and on
 				schedule.
 			</p>
-			<button class="btn bg-blue-500 text-white transition-transform duration-300 hover:scale-105"
-				>Get Started</button
+			<a href="/track"
+				><button
+					class="btn bg-blue-500 text-white transition-transform duration-300 hover:scale-105"
+					>Get Started</button
+				></a
 			>
 		</div>
 	</div>
