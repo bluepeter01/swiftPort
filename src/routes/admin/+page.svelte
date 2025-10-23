@@ -23,9 +23,10 @@
 	let newHistoryEvent = '';
 	let newHistoryLocation = '';
 	let newHistoryTimestamp = '';
+	let editingHistoryEntry: any = null;
 
 	const statuses = ['Pending', 'In-transit', 'Held at Customs', 'Delivered'];
-	const paymentStatuses = ['Unpaid', 'Paid', 'Partially Paid', 'Refunded'];
+	const paymentStatuses = ['Unpaid', 'Paid'];
 
 	let formData: any = getEmptyForm();
 
@@ -175,6 +176,15 @@
 		newHistoryEvent = '';
 		newHistoryLocation = '';
 		newHistoryTimestamp = '';
+	}
+
+	function saveHistoryEntry(entry: any) {
+		// This just updates the local array. The main saveShipment function will persist it.
+		const index = historyEntries.findIndex((e) => e === entry);
+		if (index !== -1) {
+			historyEntries[index] = { ...entry };
+		}
+		editingHistoryEntry = null;
 	}
 
 	async function removeHistoryEntry(entryToRemove: any) {
@@ -550,19 +560,61 @@
 						<ul class="mt-3 max-h-40 space-y-2 overflow-auto">
 							<!-- Sort here for display only, so original array indices are preserved -->
 							{#each [...historyEntries].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()) as h}
-								<li class="flex items-start justify-between rounded-md bg-white p-2 shadow-sm">
-									<div>
-										<div class="text-sm font-semibold">{h.event}</div>
-										<div class="text-xs text-slate-500">
-											{h.location || '—'} •
-											{new Date(h.timestamp).toLocaleString()}
+								{#if editingHistoryEntry === h}
+									<li class="rounded-md bg-blue-50 p-3 shadow-inner">
+										<div class="space-y-2">
+											<input
+												class="input-bordered input input-sm w-full"
+												placeholder="Event"
+												bind:value={h.event}
+											/>
+											<input
+												class="input-bordered input input-sm w-full"
+												placeholder="Location"
+												bind:value={h.location}
+											/>
+											<input
+												type="datetime-local"
+												class="input-bordered input input-sm w-full"
+												bind:value={h.timestamp}
+											/>
 										</div>
-									</div>
-									<button
-										class="btn text-red-500 btn-ghost btn-xs"
-										on:click={() => removeHistoryEntry(h)}>✕</button
-									>
-								</li>
+										<div class="mt-2 flex justify-end gap-2">
+											<button
+												type="button"
+												class="btn-ghost btn-xs"
+												on:click={() => (editingHistoryEntry = null)}>Cancel</button
+											>
+											<button
+												type="button"
+												class="btn-xs btn-success"
+												on:click={() => saveHistoryEntry(h)}>Save</button
+											>
+										</div>
+									</li>
+								{:else}
+									<li class="flex items-start justify-between rounded-md bg-white p-2 shadow-sm">
+										<div>
+											<div class="text-sm font-semibold">{h.event}</div>
+											<div class="text-xs text-slate-500">
+												{h.location || '—'} •
+												{new Date(h.timestamp).toLocaleString()}
+											</div>
+										</div>
+										<div class="flex gap-1">
+											<button
+												type="button"
+												class="btn-outline btn-xs"
+												on:click={() => (editingHistoryEntry = h)}>Edit</button
+											>
+											<button
+												type="button"
+												class="btn text-red-500 btn-ghost btn-xs"
+												on:click={() => removeHistoryEntry(h)}>✕</button
+											>
+										</div>
+									</li>
+								{/if}
 							{/each}
 						</ul>
 					{/if}

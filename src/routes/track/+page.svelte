@@ -156,7 +156,7 @@
 			<hr class="my-4" />
 
 			<!-- 💰 Payment Section -->
-			<!-- <div class="flex items-center justify-between rounded-lg bg-blue-50 p-4 shadow-inner">
+			<div class="flex items-center justify-between rounded-lg bg-blue-50 p-4 shadow-inner">
 				<p class="text-lg font-semibold text-gray-700">
 					Amount Due:
 					<span class="font-bold text-blue-700">${trackingInfo.amount_due}</span>
@@ -172,12 +172,12 @@
 				{:else}
 					<p class="font-semibold text-green-600">Payment Completed ✅</p>
 				{/if}
-			</div> -->
+			</div>
 
-			<!-- <p class="mt-5">
+			<p class="mt-5">
 				<b>Payment Reason: </b>
 				<span class="text-blue-500 italic">{trackingInfo.payment_reason}</span>
-			</p> -->
+			</p>
 
 			{#if trackingInfo.status === 'Held at Customs' && trackingInfo.payment_status === 'Unpaid'}
 				<div class="my-6 rounded-lg border-l-4 border-yellow-500 bg-yellow-50 p-4 shadow-sm">
@@ -187,7 +187,7 @@
 						pending payment of the required customs clearance fee.
 					</p>
 
-					<!-- <div class="mt-4 flex flex-col sm:flex-row sm:items-center sm:justify-between">
+					<div class="mt-4 flex flex-col sm:flex-row sm:items-center sm:justify-between">
 						<p class="text-sm text-gray-700">
 							<strong>Amount Due:</strong> ${trackingInfo.amount_due}
 						</p>
@@ -197,7 +197,7 @@
 						>
 							Pay Customs Fee
 						</a>
-					</div> -->
+					</div>
 				</div>
 			{/if}
 
