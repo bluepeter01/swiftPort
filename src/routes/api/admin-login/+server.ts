@@ -2,39 +2,47 @@ import { json } from '@sveltejs/kit';
 import PocketBase from 'pocketbase';
 
 export const POST = async ({ request, cookies, url }) => {
-	try {
-		const { email, password } = await request.json();
-		const redirectTo = url.searchParams.get('redirectTo') || '/admin';
+    try {
+        const { email, password } = await request.json();
+        console.log('[LOGIN ATTEMPT]', email);
 
-		const pb = new PocketBase('https://jpi.sophnexacademy.com.ng');
+        const pb = new PocketBase('https://jpi.sophnexacademy.com.ng');
+        const authData = await pb.collection('admin_users').authWithPassword(email, password)
 
-		const authData = await pb.collection('admin_users').authWithPassword(email, password);
 
-		// Make sure it's actually an admin
-		if (!authData.record?.isAdmin) {
-			pb.authStore.clear();
-			return json({ error: true, message: 'Access denied. Admins only.' }, { status: 403 });
-		}
+        console.log('[LOGIN SUCCESS]', {
+            isAdmin: authData.record?.isAdmin,
+            token: pb.authStore.token ? '✅ token present' : '❌ token missing'
+        });
 
-		// ✅ Save cookie
-		cookies.set('pb_auth', pb.authStore.exportToCookie(), {
-			path: '/',
-			httpOnly: true,
-			sameSite: 'lax',
-			secure: false, // true in production
-			maxAge: 60 * 60 * 24 * 7
-		});
+        // 💥 FIX: Change sameSite to 'Lax' for local HTTP development.
+        // 'SameSite: None' requires 'Secure: true' (HTTPS), which is not met here.
+        const cookieString = pb.authStore.exportToCookie({
+            httpOnly: true,
+            secure: false, // Keep false for local HTTP
+            sameSite: 'Lax', // Changed from 'None'
+            path: '/'
+        });
 
-		return json({
-			success: true,
-			message: 'Admin login successful.',
-			redirectTo
-		});
-	} catch (err) {
-		console.error('Admin login failed:', err);
-		return json({
-			error: true,
-			message: err?.response?.data?.message || 'Invalid email or password.'
-		}, { status: 401 });
-	}
+        console.log('[SET-COOKIE]', cookieString);
+
+        const response = json({
+            success: true,
+            message: 'Admin login successful.'
+        });
+
+        // Use response.headers.set for the primary cookie export
+        response.headers.set('set-cookie', cookieString);
+        return response;
+
+    } catch (err: any) {
+        console.error('[LOGIN ERROR]', err);
+        return json(
+            {
+                error: true,
+                message: err?.response?.data?.message || err?.message || 'Invalid email or password'
+            },
+            { status: 401 }
+        );
+    }
 };

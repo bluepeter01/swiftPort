@@ -22,33 +22,35 @@
 	});
 
 	async function login(event: Event) {
-  event.preventDefault();
-  errorMsg = '';
-  loading = true;
+		event.preventDefault();
+		errorMsg = '';
+		loading = true;
 
-  try {
-    const res = await fetch('/api/admin-login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password })
-    });
+		try {
+			const res = await fetch('/api/admin-login', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ email, password })
+			});
 
-    const data = await res.json();
+			const data = await res.json();
 
-    if (!res.ok) throw new Error(data.error || 'Login failed');
+			if (!res.ok) throw new Error(data.error || 'Login failed');
 
-    goto('/admin');
-  } catch (err) {
-    console.error('Login error:', err);
-    errorMsg = '❌ Invalid email or password.';
-  } finally {
-    loading = false;
-  }
-}
-
+			window.location.href = '/admin';
+			// await goto('/admin');
+		} catch (err) {
+			console.error('Login error:', err);
+			errorMsg = '❌ Invalid email or password.';
+		} finally {
+			loading = false;
+		}
+	}
 </script>
 
-<div class="flex min-h-screen items-center justify-center bg-gradient-to-br from-yellow-100 to-red-100">
+<div
+	class="flex min-h-screen items-center justify-center bg-gradient-to-br from-yellow-100 to-red-100"
+>
 	<form
 		class="w-full max-w-sm rounded-2xl bg-white p-8 shadow-lg transition-transform hover:scale-[1.01]"
 		on:submit={login}
@@ -56,7 +58,7 @@
 		<h1 class="mb-6 text-center text-3xl font-bold text-red-700">🔐 Admin Login</h1>
 
 		{#if errorMsg}
-			<div class="alert alert-error mb-3 text-sm">{errorMsg}</div>
+			<div class="mb-3 alert alert-error text-sm">{errorMsg}</div>
 		{/if}
 
 		<div class="form-control mb-3">
@@ -65,7 +67,7 @@
 				type="email"
 				bind:value={email}
 				required
-				class="input input-bordered w-full focus:ring-2 focus:ring-red-500"
+				class="input-bordered input w-full focus:ring-2 focus:ring-red-500"
 				placeholder="Enter admin email"
 				disabled={loading}
 			/>
@@ -77,7 +79,7 @@
 				type="password"
 				bind:value={password}
 				required
-				class="input input-bordered w-full focus:ring-2 focus:ring-red-500"
+				class="input-bordered input w-full focus:ring-2 focus:ring-red-500"
 				placeholder="Enter password"
 				disabled={loading}
 			/>
@@ -85,11 +87,11 @@
 
 		<button
 			type="submit"
-			class="btn btn-error w-full text-white transition-all hover:scale-[1.02] flex items-center justify-center"
+			class="btn flex w-full items-center justify-center text-white transition-all btn-error hover:scale-[1.02]"
 			disabled={loading}
 		>
 			{#if loading}
-				<span class="loading loading-spinner loading-sm mr-2"></span>
+				<span class="loading mr-2 loading-sm loading-spinner"></span>
 				Logging in...
 			{:else}
 				Login

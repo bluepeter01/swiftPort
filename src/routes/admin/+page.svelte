@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount, onDestroy } from 'svelte';
 	import PocketBase from 'pocketbase';
+	import { goto } from '$app/navigation';
 	import { fade, fly, scale } from 'svelte/transition';
 
 	const pb = new PocketBase('https://jpi.sophnexacademy.com.ng');
@@ -29,10 +30,21 @@
 	let formData: any = getEmptyForm();
 
 	function localInputToPbDate(local: string) {
-	if (!local) return '';
-	return new Date(local).toISOString();
-}
+		if (!local) return '';
+		return new Date(local).toISOString();
+	}
 
+	async function logout() {
+		const response = await fetch('/api/admin-logout', {
+			method: 'POST'
+		});
+
+		if (response.ok) {
+			await goto('/admin/login');
+		} else {
+			alert('Logout failed. Please try again.');
+		}
+	}
 
 	function getEmptyForm() {
 		return {
@@ -71,22 +83,21 @@
 	}
 
 	async function loadShipments() {
-	loading = true;
-	try {
-		const records = await pb.collection('shipments').getFullList({ sort: '-created' });
-		shipments = records.map(r => ({
-			...r,
-			history: Array.isArray(r.history) ? r.history : [] // ensures array
-		}));
-	} catch (err) {
-		console.error('loadShipments error', err);
-		errorMsg = `Failed to load shipments: ${err?.message ?? err}`;
-		setTimeout(() => (errorMsg = null), 4000);
-	} finally {
-		loading = false;
+		loading = true;
+		try {
+			const records = await pb.collection('shipments').getFullList({ sort: '-created' });
+			shipments = records.map((r) => ({
+				...r,
+				history: Array.isArray(r.history) ? r.history : [] // ensures array
+			}));
+		} catch (err) {
+			console.error('loadShipments error', err);
+			errorMsg = `Failed to load shipments: ${err?.message ?? err}`;
+			setTimeout(() => (errorMsg = null), 4000);
+		} finally {
+			loading = false;
+		}
 	}
-}
-
 
 	function generateTracking() {
 		formData.tracking_number = `swift${Math.floor(Math.random() * 10000000)}`;
@@ -105,24 +116,25 @@
 	}
 
 	function editShipment(item: any) {
-	editing = item;
-	existingFiles = Array.isArray(item.package_images) ? [...item.package_images] : [];
-	localEstimatedDelivery = pbDateToLocalInput(item.estimated_delivery);
-	formData = { ...getEmptyForm(), ...item };
+		editing = item;
+		existingFiles = Array.isArray(item.package_images) ? [...item.package_images] : [];
+		localEstimatedDelivery = pbDateToLocalInput(item.estimated_delivery);
+		formData = { ...getEmptyForm(), ...item };
 
-	historyEntries = Array.isArray(item.history) ? [...item.history] : []; // <— bind history
-	selectedFiles = [];
-	filePreviews = [];
-	showForm = true;
-}
-
+		historyEntries = Array.isArray(item.history) ? [...item.history] : []; // <— bind history
+		selectedFiles = [];
+		filePreviews = [];
+		showForm = true;
+	}
 
 	function handleFileChange(e: Event) {
 		const target = e.target as HTMLInputElement;
 		if (!target.files) return;
 		const files = Array.from(target.files);
 		selectedFiles = [...selectedFiles, ...files];
-		files.forEach((f) => filePreviews.push({ url: URL.createObjectURL(f), name: f.name, type: f.type }));
+		files.forEach((f) =>
+			filePreviews.push({ url: URL.createObjectURL(f), name: f.name, type: f.type })
+		);
 		target.value = '';
 	}
 
@@ -150,93 +162,91 @@
 	}
 
 	function addHistoryEntry() {
-	if (!newHistoryEvent.trim()) return;
+		if (!newHistoryEvent.trim()) return;
 
-	const isoTimestamp = newHistoryTimestamp
-		? new Date(newHistoryTimestamp).toISOString()
-		: new Date().toISOString();
+		const isoTimestamp = newHistoryTimestamp
+			? new Date(newHistoryTimestamp).toISOString()
+			: new Date().toISOString();
 
-	historyEntries.unshift({
-		event: newHistoryEvent.trim(),
-		location: newHistoryLocation.trim() || undefined,
-		timestamp: isoTimestamp
-	});
+		historyEntries.unshift({
+			event: newHistoryEvent.trim(),
+			location: newHistoryLocation.trim() || undefined,
+			timestamp: isoTimestamp
+		});
 
-	newHistoryEvent = '';
-	newHistoryLocation = '';
-	newHistoryTimestamp = '';
-}
-
+		newHistoryEvent = '';
+		newHistoryLocation = '';
+		newHistoryTimestamp = '';
+	}
 
 	async function removeHistoryEntry(i: number) {
-	if (!editing?.id) return alert('No shipment selected.');
+		if (!editing?.id) return alert('No shipment selected.');
 
-	historyEntries.splice(i, 1);
+		historyEntries.splice(i, 1);
 
-	try {
-		await pb.collection('shipments').update(editing.id, { history: historyEntries });
-		successMsg = 'History entry removed';
-		setTimeout(() => (successMsg = null), 2500);
-	} catch (err) {
-		console.error('removeHistoryEntry error', err);
-		errorMsg = 'Failed to remove history entry';
-		setTimeout(() => (errorMsg = null), 3000);
+		try {
+			await pb.collection('shipments').update(editing.id, { history: historyEntries });
+			successMsg = 'History entry removed';
+			setTimeout(() => (successMsg = null), 2500);
+		} catch (err) {
+			console.error('removeHistoryEntry error', err);
+			errorMsg = 'Failed to remove history entry';
+			setTimeout(() => (errorMsg = null), 3000);
+		}
 	}
-}
 
-async function clearAllHistory() {
-	if (!editing?.id) return alert('No shipment selected.');
+	async function clearAllHistory() {
+		if (!editing?.id) return alert('No shipment selected.');
 
-	if (!confirm('Are you sure you want to clear all history?')) return;
+		if (!confirm('Are you sure you want to clear all history?')) return;
 
-	historyEntries = [];
+		historyEntries = [];
 
-	try {
-		await pb.collection('shipments').update(editing.id, { history: [] });
-		successMsg = 'All history cleared';
-		setTimeout(() => (successMsg = null), 2500);
-	} catch (err) {
-		console.error('clearAllHistory error', err);
-		errorMsg = 'Failed to clear history';
-		setTimeout(() => (errorMsg = null), 3000);
+		try {
+			await pb.collection('shipments').update(editing.id, { history: [] });
+			successMsg = 'All history cleared';
+			setTimeout(() => (successMsg = null), 2500);
+		} catch (err) {
+			console.error('clearAllHistory error', err);
+			errorMsg = 'Failed to clear history';
+			setTimeout(() => (errorMsg = null), 3000);
+		}
 	}
-}
-
 
 	// Save shipment: uses FormData so files upload OK via PocketBase
-	async function saveShipment() {
-  try {
-    // Build the data to save
-    const data: any = {
-      ...formData,
-      estimated_delivery: localInputToPbDate(localEstimatedDelivery),
-      history: historyEntries,        // <-- include the array properly
-      package_images: [...existingFiles] // start with existing images
-    };
+	async function saveShipment(event: Event) {
+		event.preventDefault();
+		try {
+			// Build the data to save
+			const data: any = {
+				...formData,
+				estimated_delivery: localInputToPbDate(localEstimatedDelivery),
+				history: historyEntries, // <-- include the array properly
+				package_images: [...existingFiles] // start with existing images
+			};
 
-    // If user uploaded new files, add them
-    if (selectedFiles.length > 0) {
-      const uploadedFiles = await uploadFiles(selectedFiles);
-      data.package_images = [...existingFiles, ...uploadedFiles];
-    }
+			// If user uploaded new files, add them
+			if (selectedFiles.length > 0) {
+				const uploadedFiles = await uploadFiles(selectedFiles);
+				data.package_images = [...existingFiles, ...uploadedFiles];
+			}
 
-    if (editing?.id) {
-      // Update record
-      await pb.collection('shipments').update(editing.id, data);
-    } else {
-      // Create new record
-      await pb.collection('shipments').create(data);
-    }
+			if (editing?.id) {
+				// Update record
+				await pb.collection('shipments').update(editing.id, data);
+			} else {
+				// Create new record
+				await pb.collection('shipments').create(data);
+			}
 
-    showForm = false;
-    await loadShipments();
-    alert('Shipment saved successfully!');
-  } catch (err) {
-    console.error('saveShipment error', err);
-    alert(`Error saving shipment: ${err?.message ?? err}`);
-  }
-}
-
+			showForm = false;
+			await loadShipments();
+			alert('Shipment saved successfully!');
+		} catch (err) {
+			console.error('saveShipment error', err);
+			alert(`Error saving shipment: ${err?.message ?? err}`);
+		}
+	}
 
 	async function deleteShipment(id: string) {
 		if (!confirm('Delete this shipment?')) return;
@@ -254,30 +264,27 @@ async function clearAllHistory() {
 
 	let unsubscribe: (() => void) | null = null;
 	onMount(async () => {
-	await loadShipments();
+		await loadShipments();
 
-	// subscribe once
-	const sub = pb.collection('shipments').subscribe('*', () => {
-		// only reload if the form is not open
-		if (!showForm) loadShipments();
+		// subscribe once
+		const sub = pb.collection('shipments').subscribe('*', () => {
+			// only reload if the form is not open
+			if (!showForm) loadShipments();
+		});
+		unsubscribe = () => sub.unsubscribe();
 	});
-	unsubscribe = () => sub.unsubscribe();
-});
 
 	onDestroy(() => unsubscribe?.());
 </script>
 
-<style>
-	/* small helper for image grid */
-	.image-grid { display:flex; gap:8px; flex-wrap:wrap; }
-	.thumb { width:72px; height:72px; object-fit:cover; border-radius:6px; border:1px solid rgba(0,0,0,0.06) }
-</style>
-
-<div class="min-h-screen bg-gradient-to-br from-yellow-50 to-red-50 p-6 mt-18">
+<div class="mt-18 min-h-screen bg-gradient-to-br from-yellow-50 to-red-50 p-6">
 	<div class="mx-auto max-w-7xl space-y-6">
 		<header class="flex items-center justify-between">
 			<h1 class="text-3xl font-extrabold text-blue-700">📦 SwiftPort Logistics Dashboard</h1>
-			<button class="btn btn-primary rounded-xl px-5" on:click={openNew}>➕ Add Shipment</button>
+			<div class="flex items-center gap-2">
+				<button class="btn rounded-xl px-5 btn-primary" on:click={openNew}>➕ Add Shipment</button>
+				<button class="btn rounded-xl btn-outline btn-error" on:click={logout}>Logout</button>
+			</div>
 		</header>
 
 		{#if successMsg}
@@ -293,80 +300,128 @@ async function clearAllHistory() {
 		{/if}
 
 		{#if showForm}
-			<section class="rounded-2xl border border-red-100 bg-white/90 p-6 shadow-xl" transition:scale>
+			<form
+				class="rounded-2xl border border-red-100 bg-white/90 p-6 shadow-xl"
+				transition:scale
+				on:submit={saveShipment}
+			>
 				<h2 class="mb-4 text-lg font-semibold text-slate-800">
 					{editing ? '✏️ Edit Shipment' : '🚀 New Shipment'}
 				</h2>
 
 				<div class="grid gap-4 md:grid-cols-2">
 					<!-- Column 1 -->
-					<div>
+					<div class="space-y-2">
 						<div class="form-control mb-2">
 							<label class="label"><span>Tracking Number</span></label>
 							<div class="flex gap-2">
-								<input class="input input-bordered w-full" bind:value={formData.tracking_number} />
+								<input
+									class="input-bordered input w-full"
+									bind:value={formData.tracking_number}
+									required
+								/>
 								<button class="btn btn-ghost" on:click={generateTracking}>Gen</button>
 							</div>
 						</div>
 
 						<div class="form-control mb-2">
 							<label class="label"><span>Sender Name</span></label>
-							<input class="input input-bordered w-full" bind:value={formData.sender_name} />
+							<input
+								class="input-bordered input w-full"
+								bind:value={formData.sender_name}
+								required
+							/>
 						</div>
 
 						<div class="form-control mb-2">
 							<label class="label"><span>Receiver Name</span></label>
-							<input class="input input-bordered w-full" bind:value={formData.receiver_name} />
+							<input
+								class="input-bordered input w-full"
+								bind:value={formData.receiver_name}
+								required
+							/>
 						</div>
 
 						<div class="form-control mb-2">
 							<label class="label"><span>Receiver Email</span></label>
-							<input class="input input-bordered w-full" type="email" bind:value={formData.receiver_email} />
+							<input
+								class="input-bordered input w-full"
+								type="email"
+								bind:value={formData.receiver_email}
+								required
+							/>
 						</div>
 
 						<div class="form-control mb-2">
 							<label class="label"><span>Receiver Phone</span></label>
-							<input class="input input-bordered w-full" bind:value={formData.receiver_phone} />
+							<input
+								class="input-bordered input w-full"
+								bind:value={formData.receiver_phone}
+								required
+							/>
 						</div>
 
 						<div class="form-control mb-2">
 							<label class="label"><span>Package Contents</span></label>
-							<textarea class="textarea textarea-bordered w-full" rows="3" bind:value={formData.package_contents}></textarea>
+							<textarea
+								class="textarea-bordered textarea w-full"
+								rows="3"
+								bind:value={formData.package_contents}
+								required
+							></textarea>
 						</div>
 
 						<div class="grid grid-cols-2 gap-2">
-							<div class="form-control mb-2">
+							<div class="form-control">
 								<label class="label"><span>Weight (kg)</span></label>
-								<input class="input input-bordered" type="number" min="0" step="0.01" bind:value={formData.weight} />
+								<input
+									class="input-bordered input"
+									type="number"
+									min="0"
+									step="0.01"
+									bind:value={formData.weight}
+									required
+								/>
 							</div>
 
-							<div class="form-control mb-2">
+							<div class="form-control">
 								<label class="label"><span>Amount Due (USD)</span></label>
-								<input class="input input-bordered" type="number" min="0" step="0.01" bind:value={formData.amount_due} />
+								<input
+									class="input-bordered input"
+									type="number"
+									min="0"
+									step="0.01"
+									bind:value={formData.amount_due}
+									required
+								/>
 							</div>
 						</div>
 					</div>
 
 					<!-- Column 2 -->
-					<div>
+					<div class="space-y-2">
 						<div class="form-control mb-2">
 							<label class="label"><span>Origin</span></label>
-							<input class="input input-bordered w-full" bind:value={formData.origin} />
+							<input class="input-bordered input w-full" bind:value={formData.origin} required />
 						</div>
 
 						<div class="form-control mb-2">
 							<label class="label"><span>Destination</span></label>
-							<input class="input input-bordered w-full" bind:value={formData.destination} />
+							<input
+								class="input-bordered input w-full"
+								bind:value={formData.destination}
+								required
+							/>
 						</div>
 
 						<div class="form-control mb-2">
 							<label class="label"><span>Current Location</span></label>
-							<input class="input input-bordered w-full" bind:value={formData.current_location} />
+							<input class="input-bordered input w-full" bind:value={formData.current_location} />
 						</div>
 
 						<div class="form-control mb-2">
 							<label class="label"><span>Status</span></label>
-							<select class="select select-bordered w-full" bind:value={formData.status}>
+							<select class="select-bordered select w-full" bind:value={formData.status}>
 								{#each statuses as s}
 									<option>{s}</option>
 								{/each}
@@ -375,12 +430,18 @@ async function clearAllHistory() {
 
 						<div class="form-control mb-2">
 							<label class="label"><span>Estimated Delivery</span></label>
-							<input type="datetime-local" class="input input-bordered w-full" bind:value={localEstimatedDelivery} on:change={updateEstimatedDelivery} />
+							<input
+								type="datetime-local"
+								class="input-bordered input w-full"
+								bind:value={localEstimatedDelivery}
+								required
+								on:change={updateEstimatedDelivery}
+							/>
 						</div>
 
 						<div class="form-control mb-2">
 							<label class="label"><span>Payment Status</span></label>
-							<select class="select select-bordered w-full" bind:value={formData.payment_status}>
+							<select class="select-bordered select w-full" bind:value={formData.payment_status}>
 								{#each paymentStatuses as p}
 									<option>{p}</option>
 								{/each}
@@ -389,7 +450,7 @@ async function clearAllHistory() {
 
 						<div class="form-control mb-2">
 							<label class="label"><span>Payment Reason</span></label>
-							<input class="input input-bordered w-full" bind:value={formData.payment_reason} />
+							<input class="input-bordered input w-full" bind:value={formData.payment_reason} />
 						</div>
 					</div>
 				</div>
@@ -436,19 +497,26 @@ async function clearAllHistory() {
 				<div class="mt-6 rounded-lg border border-gray-200 bg-gray-50 p-4">
 					<h3 class="mb-2 text-sm font-bold text-slate-700">Tracking History</h3>
 					<div class="grid grid-cols-1 gap-2 md:grid-cols-3">
-						<input class="input input-sm input-bordered" placeholder="Event" bind:value={newHistoryEvent} />
-						<input class="input input-sm input-bordered" placeholder="Location" bind:value={newHistoryLocation} />
 						<input
-  type="datetime-local"
-  class="input input-sm input-bordered"
-  bind:value={newHistoryTimestamp}
-/>
-
+							class="input-bordered input input-sm"
+							placeholder="Event"
+							bind:value={newHistoryEvent}
+						/>
+						<input
+							class="input-bordered input input-sm"
+							placeholder="Location"
+							bind:value={newHistoryLocation}
+						/>
+						<input
+							type="datetime-local"
+							class="input-bordered input input-sm"
+							bind:value={newHistoryTimestamp}
+						/>
 					</div>
 					<div class="mt-2 flex gap-2">
-	<button class="btn btn-outline btn-sm" on:click={addHistoryEntry}>Add</button>
-	<button class="btn btn-sm" on:click={clearAllHistory}>Clear all</button>
-</div>
+						<button class="btn btn-outline btn-sm" on:click={addHistoryEntry}>Add</button>
+						<button class="btn btn-sm" on:click={clearAllHistory}>Clear all</button>
+					</div>
 
 					{#if historyEntries.length}
 						<ul class="mt-3 max-h-40 space-y-2 overflow-auto">
@@ -456,9 +524,14 @@ async function clearAllHistory() {
 								<li class="flex items-start justify-between rounded-md bg-white p-2 shadow-sm">
 									<div>
 										<div class="text-sm font-semibold">{h.event}</div>
-										<div class="text-xs text-slate-500">{h.location ?? '—'} • {new Date(h.timestamp).toLocaleString()}</div>
+										<div class="text-xs text-slate-500">
+											{h.location ?? '—'} • {new Date(h.timestamp).toLocaleString()}
+										</div>
 									</div>
-									<button class="btn btn-ghost btn-xs text-red-500" on:click={() => removeHistoryEntry(idx)}>✕</button>
+									<button
+										class="btn text-red-500 btn-ghost btn-xs"
+										on:click={() => removeHistoryEntry(idx)}>✕</button
+									>
 								</li>
 							{/each}
 						</ul>
@@ -466,12 +539,12 @@ async function clearAllHistory() {
 				</div>
 
 				<div class="mt-6 flex justify-end gap-2">
-					<button class="btn" on:click={() => (showForm = false)}>Cancel</button>
-					<button class="btn btn-success" on:click={saveShipment}>
+					<button type="button" class="btn" on:click={() => (showForm = false)}>Cancel</button>
+					<button type="submit" class="btn btn-success">
 						{editing ? 'Update' : 'Create'}
 					</button>
 				</div>
-			</section>
+			</form>
 		{/if}
 
 		<section>
@@ -481,7 +554,7 @@ async function clearAllHistory() {
 				<div class="rounded-lg bg-white p-6 text-center shadow">📭 No shipments found.</div>
 			{:else}
 				<div class="overflow-x-auto rounded-2xl border border-gray-100 bg-white shadow-xl">
-					<table class="table table-zebra w-full">
+					<table class="table w-full table-zebra">
 						<thead class="sticky top-0 bg-blue-600 text-white">
 							<tr>
 								<th>Tracking</th>
@@ -501,7 +574,9 @@ async function clearAllHistory() {
 									<td>{s.sender_name}</td>
 									<td>{s.receiver_name}</td>
 									<td>
-										<span class={`badge ${s.status === 'Delivered' ? 'badge-success' : s.status === 'Held at Customs' ? 'badge-warning' : 'badge-info'}`}>
+										<span
+											class={`badge ${s.status === 'Delivered' ? 'badge-success' : s.status === 'Held at Customs' ? 'badge-warning' : 'badge-info'}`}
+										>
 											{s.status}
 										</span>
 									</td>
@@ -510,8 +585,13 @@ async function clearAllHistory() {
 									<td>{Array.isArray(s.history) ? s.history.length : 0}</td>
 									<td>
 										<div class="flex gap-1">
-											<button class="btn btn-outline btn-xs" on:click={() => editShipment(s)}>Edit</button>
-											<button class="btn btn-error btn-xs text-white" on:click={() => deleteShipment(s.id)}>Delete</button>
+											<button class="btn btn-outline btn-xs" on:click={() => editShipment(s)}
+												>Edit</button
+											>
+											<button
+												class="btn text-white btn-xs btn-error"
+												on:click={() => deleteShipment(s.id)}>Delete</button
+											>
 										</div>
 									</td>
 								</tr>
@@ -524,4 +604,18 @@ async function clearAllHistory() {
 	</div>
 </div>
 
-
+<style>
+	/* small helper for image grid */
+	.image-grid {
+		display: flex;
+		gap: 8px;
+		flex-wrap: wrap;
+	}
+	.thumb {
+		width: 72px;
+		height: 72px;
+		object-fit: cover;
+		border-radius: 6px;
+		border: 1px solid rgba(0, 0, 0, 0.06);
+	}
+</style>
