@@ -179,10 +179,13 @@
 		newHistoryTimestamp = '';
 	}
 
-	async function removeHistoryEntry(i: number) {
+	async function removeHistoryEntry(entryToRemove: any) {
 		if (!editing?.id) return alert('No shipment selected.');
+		if (!confirm('Are you sure you want to delete this history entry?')) return;
 
-		historyEntries.splice(i, 1);
+		const indexToRemove = historyEntries.findIndex((entry) => entry === entryToRemove);
+		if (indexToRemove === -1) return;
+		historyEntries.splice(indexToRemove, 1);
 
 		try {
 			await pb.collection('shipments').update(editing.id, { history: historyEntries });
@@ -551,17 +554,19 @@
 
 					{#if historyEntries.length}
 						<ul class="mt-3 max-h-40 space-y-2 overflow-auto">
-							{#each historyEntries as h, idx}
+							<!-- Sort here for display only, so original array indices are preserved -->
+							{#each [...historyEntries].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()) as h}
 								<li class="flex items-start justify-between rounded-md bg-white p-2 shadow-sm">
 									<div>
 										<div class="text-sm font-semibold">{h.event}</div>
 										<div class="text-xs text-slate-500">
-											{h.location ?? '—'} • {new Date(h.timestamp).toLocaleString()}
+											{h.location || '—'} •
+											{new Date(h.timestamp).toLocaleString()}
 										</div>
 									</div>
 									<button
 										class="btn text-red-500 btn-ghost btn-xs"
-										on:click={() => removeHistoryEntry(idx)}>✕</button
+										on:click={() => removeHistoryEntry(h)}>✕</button
 									>
 								</li>
 							{/each}
