@@ -1,5 +1,5 @@
 <script>
-	export let phone = '15551234567'; // replace with your WhatsApp number (e.g., "2348012345678" for Nigeria)
+	export let phone = '+16578022801'; // replace with your WhatsApp number (e.g., "2348012345678" for Nigeria)
 	export let message = 'Hello SwiftPort Logistics! I’d like to make an inquiry.';
 </script>
 
