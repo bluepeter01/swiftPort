@@ -4,7 +4,8 @@
 	import { writable } from 'svelte/store';
 	import WhatsAppButton from '$lib/WhatsAppButton.svelte';
 	export let phone = '+16578022801'; // replace with your WhatsApp number (e.g., "2348012345678" for Nigeria)
-	export let message = 'Hello SwiftPort Logistics! I’d like to make an inquiry.';
+	export let message =
+		'Hello SwiftPort Logistics! I’d like to request for account details for payment of my order.';
 
 	// --- STORES ---
 	const paymentInfo = writable(null);
