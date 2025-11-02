@@ -1,6 +1,7 @@
 <script>
 	import WhatsAppButton from '$lib/WhatsAppButton.svelte';
 	export let phone = '+16578022801'; // replace with your WhatsApp number (e.g., "2348012345678" for Nigeria)
+	let whatsappMessage = 'Hello! I’d like to inquire about SwiftPort shipping.';
 
 	let name = '';
 	let email = '';
@@ -70,7 +71,7 @@
 
 		<p>📞 Phone: +1 (813) 394-8987</p>
 		<a
-			href={`https://wa.me/${phone}?text=${encodeURIComponent(message)}`}
+			href={`https://wa.me/${phone}?text=${encodeURIComponent(whatsappMessage)}`}
 			target="_blank"
 			rel="noopener noreferrer"
 			class="mx-auto flex w-fit items-center justify-center gap-2 rounded-full bg-green-500 px-5 py-3 text-white shadow-lg transition-all duration-300 hover:bg-green-600"
