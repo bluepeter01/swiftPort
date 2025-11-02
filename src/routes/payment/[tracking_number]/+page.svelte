@@ -211,7 +211,7 @@
 			<div class="rounded-xl bg-gray-100 p-6 text-center shadow-lg">
 				<h2 class="mb-4 text-xl font-bold">Wire Transfer Request</h2>
 				<p class="mb-3 text-gray-600">
-					Click on the Request button below to receive our bank details via whatsapp.
+					Click on the button below to request for our bank details via whatsapp.
 				</p>
 
 				<a
