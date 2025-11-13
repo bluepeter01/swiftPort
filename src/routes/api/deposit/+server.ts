@@ -22,7 +22,8 @@ export const POST: RequestHandler = async ({ request }) => {
       return new Response('userId, coin, and amount are required', { status: 400 });
     }
 
-    const pb = new PocketBase('https://jpi.sophnexacademy.com.ng');
+    // const pb = new PocketBase('https://jpi.sophnexacademy.com.ng');
+    const pb = new PocketBase('https://playgzero.pb.itcass.net');
     pb.autoCancellation(false);
 
     console.log('Fetching user from PocketBase...');

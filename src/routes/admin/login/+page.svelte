@@ -3,7 +3,8 @@
 	import { goto } from '$app/navigation';
 	import { onMount } from 'svelte';
 
-	const pb = new PocketBase('https://jpi.sophnexacademy.com.ng');
+	// const pb = new PocketBase('https://jpi.sophnexacademy.com.ng');
+	const pb = new PocketBase('https://playgzero.pb.itcass.net');
 	pb.autoCancellation(false); // prevent unwanted auto-refreshes
 
 	let email = '';

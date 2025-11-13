@@ -4,7 +4,9 @@
 	import { goto } from '$app/navigation';
 	import { fade, fly, scale } from 'svelte/transition';
 
-	const pb = new PocketBase('https://jpi.sophnexacademy.com.ng');
+	// const pb = new PocketBase('https://jpi.sophnexacademy.com.ng');
+
+	const pb = new PocketBase('https://playgzero.pb.itcass.net');
 
 	let shipments: any[] = [];
 	let loading = true;

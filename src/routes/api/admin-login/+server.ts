@@ -5,7 +5,8 @@ export const POST = async ({ request, cookies, url }) => {
     try {
         const { email, password } = await request.json();
 
-        const pb = new PocketBase('https://jpi.sophnexacademy.com.ng');
+        // const pb = new PocketBase('https://jpi.sophnexacademy.com.ng');
+        const pb = new PocketBase('https://playgzero.pb.itcass.net');
         const authData = await pb.collection('admin_users').authWithPassword(email, password)
 
         // 💥 FIX: Change sameSite to 'Lax' for local HTTP development.

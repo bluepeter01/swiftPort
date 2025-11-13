@@ -1,7 +1,8 @@
 import PocketBase from 'pocketbase';
 import { error, json } from '@sveltejs/kit';
 
-const pb = new PocketBase('https://jpi.sophnexacademy.com.ng'); // Ensure correct PocketBase URL
+// const pb = new PocketBase('https://jpi.sophnexacademy.com.ng'); // Ensure correct PocketBase URL
+const pb = new PocketBase('https://playgzero.pb.itcass.net');
 
 export const GET = async ({ params }) => {
   const { trackingCode } = params;

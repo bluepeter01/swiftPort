@@ -2,8 +2,8 @@ import PocketBase from 'pocketbase';
 import type { Handle, HandleFetch } from '@sveltejs/kit';
 
 export const handle: Handle = async ({ event, resolve }) => {
-	event.locals.pb = new PocketBase('https://jpi.sophnexacademy.com.ng');
-
+	// event.locals.pb = new PocketBase('https://jpi.sophnexacademy.com.ng');
+	event.locals.pb = new PocketBase('https://playgzero.pb.itcass.net');
 	// load the store data from the request cookie string
 	event.locals.pb.authStore.loadFromCookie(event.request.headers.get('cookie') || '');
 
