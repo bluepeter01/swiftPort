@@ -24,8 +24,8 @@
 			wallet: '0x52a8a580087f61acee6f11ec3f7a95a413a6e44f'
 		},
 		// { name: 'XRP', symbol: 'XRP', wallet: 'rnEdfxXTBuq6b1xNrKz8F8A7ABReDDLG2U' },
-		{ name: 'Dogecoin', symbol: 'DOGE', wallet: 'D7qha3LVpy9p1mEySU8vNLVS4VdPtkVsw8' }
-		// { name: 'Binance coin', symbol: 'BNB', wallet: 'DUE46QNd1oLAWvVjcESx55mWnK1iAtjjJi' }
+		{ name: 'Dogecoin', symbol: 'DOGE', wallet: 'D7qha3LVpy9p1mEySU8vNLVS4VdPtkVsw8' },
+		{ name: 'Binance coin', symbol: 'BNB', wallet: '0x52a8a580087f61acee6f11ec3f7a95a413a6e44f' }
 	];
 
 	let selectedMethod = writable('crypto');
